@@ -1,0 +1,13 @@
+coreapi==2.3.3
+django-filter==2.0.0
+Django==2.2.3
+djangorestframework-jwt==1.11.0
+djangorestframework==3.10.2
+drf-yasg==1.16.1
+invoke==0.16.3
+markdown==3.1.1
+packaging==19.1
+psycopg2-binary==2.8.3
+django-redis==4.5.0
+celery==4.1.1
+redis==3.2.0
