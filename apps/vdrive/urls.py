@@ -1,9 +1,10 @@
-from django.conf.urls import url
-
+from django.contrib import admin
+from django.urls import path, include
 from . import views
+from django.views.generic import TemplateView
 
+app_name = 'login'
 
-app_name = 'vdrive'
-
-# Create your own urls here
-urlpatterns = []
+urlpatterns = [
+    path('', views.GDriveListView.as_view()),
+]

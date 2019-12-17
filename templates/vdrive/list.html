@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block content %}
+
+<ul>
+{% for file in files %}
+    <li> <input type="checkbox" value="{{file.id}}"/>{{ file.name }}</li>
+{% endfor %}
+    <button>Submit</button>
+</ul>
+    {% endblock %}

@@ -1,7 +1,10 @@
-FROM atomcream/python3.6.5u
+FROM python:3.8
 
 WORKDIR /web
 
-COPY requirements.txt /requirements.txt
+RUN apt-get update && apt-get install -y gettext && rm -rf /var/cache/apt
 
-RUN pip install -U pip; pip install -r /requirements.txt
+COPY requirements.txt /requirements.txt
+COPY requirements_dev.txt /requirements_dev.txt
+
+RUN pip install -U pip; pip install -r /requirements_dev.txt
