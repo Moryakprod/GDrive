@@ -9,12 +9,12 @@ class Command(BaseCommand):
 
     def handle(self, **_):
         User = get_user_model()
-        if not User.objects.filter(email=settings.DEV_SUPERUSER_EMAIL).exists():
+        if not User.objects.filter(username=settings.DEV_SUPERUSER_EMAIL).exists():
             User.objects.create_superuser(
                 settings.DEV_SUPERUSER_EMAIL, settings.DEV_SUPERUSER_PASSWORD
             )
         self.stdout.write(self.style.SUCCESS(
-            "!!! Pay attention: DEV Superuser '{email}/{pw}' is active !!!".format(
-                email=settings.DEV_SUPERUSER_EMAIL, pw=settings.DEV_SUPERUSER_PASSWORD
+            "!!! Pay attention: DEV Superuser '{username}/{pw}' is active !!!".format(
+                username=settings.DEV_SUPERUSER_EMAIL, pw=settings.DEV_SUPERUSER_PASSWORD
             )
         ))

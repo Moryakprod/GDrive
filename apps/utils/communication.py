@@ -3,8 +3,6 @@ from base64 import b64decode, b64encode
 
 from django.utils.translation import ugettext_lazy as _
 
-from rest_framework import serializers
-
 
 def encode_dict_to_base64(data_dict):
     """Encode dict to base64 string."""

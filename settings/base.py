@@ -31,10 +31,6 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-
-AUTH_USER_MODEL = 'authentication.User'
-
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -44,14 +40,13 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    'social_django',
+
     # apps
     'apps.vdrive.apps.VdriveConfig',
-    'apps.authentication.apps.AuthConfig',
     'apps.utils.apps.UtilsConfig',
-    # 3d party apps
-    'rest_framework',
-    'drf_yasg',
-]
+ ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -104,28 +99,6 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
-
-REST_FRAMEWORK = {
-    # Auth
-    'DEFAULT_PERMISSION_CLASSES': (
-        'apps.authentication.permissions.IsAuthenticated',
-    ),
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
-        'rest_framework.authentication.SessionAuthentication',
-    ),
-    'DEFAULT_FILTER_BACKENDS': ('django_filters.rest_framework.DjangoFilterBackend',),
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
-    'PAGE_SIZE': 10
-}
-
-JWT_AUTH = {
-    'JWT_EXPIRATION_DELTA': datetime.timedelta(days=3),
-    'JWT_REFRESH_EXPIRATION_DELTA': datetime.timedelta(days=5),
-    'JWT_RESPONSE_PAYLOAD_HANDLER': 'apps.authentication.jwt_utils.jwt_response_payload_handler'
-}
-JWT_ALLOW_REFRESH = True
-
 
 # Internationalization
 # https://docs.djangoproject.com/en/2.2/topics/i18n/
@@ -197,3 +170,16 @@ EMAIL_SUBJECT_PATTERN = 'Vdrive - %s'
 # envs from the docker container
 FRONT_HOST = os.environ.get('FRONT_HOST', '')
 STATIC_HOST = os.environ.get('STATIC_HOST', '')
+
+
+AUTHENTICATION_BACKENDS = (
+    'social_core.backends.google.GoogleOAuth2',
+    'django.contrib.auth.backends.ModelBackend',
+)
+
+
+SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = '517394967633-lalgtan590acmsevftltm3op0r78ap8r.apps.googleusercontent.com'
+SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = 'lufONhl4DT8tasoOdppxNsUG'
+SOCIAL_AUTH_GOOGLE_OAUTH2_AUTH_EXTRA_ARGUMENTS = {'access_type': 'offline'}
+
+SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE = ['https://www.googleapis.com/auth/drive']

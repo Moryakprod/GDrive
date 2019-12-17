@@ -1,6 +1,7 @@
 version: '3'
 services:
   web:
+    restart: unless-stopped
     build: .
     env_file:
       - ./docker_env.env
@@ -8,8 +9,9 @@ services:
       - ./config/env_vars/db/dev_db.env
     volumes:
       - .:/web
-    links:
-      - db:db
+    depends_on:
+      - db
+      - redis
     expose:
       - "9001"
     command:
@@ -18,7 +20,7 @@ services:
     stdin_open: true
 
   db:
-    image: postgres:9.6
+    image: postgres:12.1
     ports:
       - "9002:5432"
     env_file:
@@ -26,7 +28,7 @@ services:
     command: postgres
 
   redis:
-    image: redis:4.0
+    image: redis:5
 
   celery:
     build: .
@@ -53,7 +55,7 @@ services:
       /bin/bash -c "pip install sphinx-autobuild recommonmark; sphinx-autobuild docs/source docs/build -H 0.0.0.0 --poll -p 8001"
 
   nginx:
-    image: nginx:1.13.8
+    image: nginx:1.17.6
     links:
       - web:web
       - sphinx:sphinx
