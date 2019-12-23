@@ -12,7 +12,7 @@ class GDriveListView(LoginRequiredMixin, TemplateView):
         social = user.social_auth.get(provider='google-oauth2')
         creds = Credentials(social.extra_data['access_token'])
         drive = build('drive', 'v3', credentials=creds)
-        files_data = drive.files().list(q="mimeType='video/mp4'").execute()
+        files_data = drive.files().list(q=("mimeType contains 'video/'")).execute()
         print(files_data)
         return files_data['files']
 
