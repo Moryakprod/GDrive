@@ -1,4 +1,5 @@
 # Vdrive #
+added docker-compose celery
 
 1. [General Information](#general-information)
 2. [Dependencies](#dependencies)
