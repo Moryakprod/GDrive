@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+<form method="post" action="/form/">
+    {% for file in files %}
+    {% csrf_token %}
+    {{ form.as_p }}
+        <li><input type="checkbox" value="{{ file.id }}"><label>{{ file.name }}</label></li>
+    {% endfor %}
+    <input type="submit" value="Submit">
+</form>
+    {% endblock %}

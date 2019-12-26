@@ -31,6 +31,3 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 # EMAIL_HOST_PASSWORD =
 
 DEFAULT_FROM_EMAIL = 'vdrive_postmaster@atomcream.com'
-
-SOCIAL_AUTH_GOOGLE_OAUTH2_REDIRECT_URL = 'http://127.0.0.1:8000/social/complete/google-oauth2/'
-SOCIAL_AUTH_LOGIN_REDIRECT_URL = 'http://127.0.0.1:8000/social/complete/google-oauth2/'
