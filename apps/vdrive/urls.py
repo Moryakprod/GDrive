@@ -1,11 +1,10 @@
 from django.contrib import admin
 from django.urls import path, include, re_path
-from apps.vdrive.views import MyView
-from django.views.generic import TemplateView
+from apps.vdrive.views import GDriveListView
 
 app_name = 'login'
 
 urlpatterns = [
-    # path('', ),
-    path('form/', MyView.as_view()),
+    path('', GDriveListView.as_view()),
+    path('form/', GDriveListView.as_view()),
 ]
