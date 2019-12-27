@@ -25,11 +25,12 @@ class VideoProcessing(models.Model):
         ERROR_MESSAGE = 'ERROR_MESS', _('Error message')
         SUCCESSFUL_UPLOAD = 'SUCC_UP', _('Successfully Uploaded')
 
-    processing = models.ForeignKey('vdrive.Processing', on_delete=models.CASCADE)
+    processing = models.ForeignKey('Processing', on_delete=models.CASCADE)
     source_id = models.CharField(verbose_name=_(" id of video in the source"),max_length=250, primary_key=True, unique=True,)
     status = models.CharField(max_length=10, choices=Status.choices, default=Status.DOWNLOAD,)
     error_message_video = models.TextField(max_length=500, blank=True)
     youtube_id = models.CharField(verbose_name=_("id of youtube uploaded video"), max_length=250, unique=True,)
     youtube_link = models.URLField(verbose_name=_("link of the video from youtube"), max_length=250, unique=True)
+
 
 
