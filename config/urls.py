@@ -15,7 +15,6 @@ Including another URLconf
 """
 from django.conf.urls import include, re_path
 from django.contrib import admin
-from apps.vdrive.views import UserListView
 
 # Remove default django '/' site_url to hide 'View Site' button in Admin header
 admin.site.site_url = None
@@ -25,5 +24,5 @@ urlpatterns = [
     re_path(r'^', include('apps.vdrive.urls')),
     re_path(r'^accounts/', include('django.contrib.auth.urls')),
     re_path(r'^social/', include('social_django.urls', namespace='social')),
-    re_path(r'^imports_list/', UserListView.as_view()),
+
 ]

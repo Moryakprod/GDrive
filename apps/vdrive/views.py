@@ -5,6 +5,7 @@ from googleapiclient.discovery import build
 from django.views.generic import TemplateView
 from django.views.generic import ListView, DetailView, UpdateView
 from apps.vdrive.models import VideoProcessing, Processing
+from django.shortcuts import render
 from django.urls import reverse
 
 
@@ -28,7 +29,8 @@ class GDriveListView(LoginRequiredMixin, TemplateView):
 
 
 class UserListView(ListView):
-    model = VideoProcessing, Processing
+    model = Processing
+    template_name = 'vdrive/imports_list.html'
 
 
 

@@ -1,3 +1,14 @@
+<ul>
 {% for process in object_list %}
-    {{ process.processing }} - {{ process.status }} - {{ process.error_message_video }}<br>
+    <li>
+    {{ process.source_type }} - {{ process.date }} <br>
+    </li>
+    <ul>
+        {% for video in process.videos.all %}
+        <li>
+            {{ video.status }} - {{ video.source_id }}<br>
+        </li>
+    </ul>
+    {% endfor %}
 {% endfor %}
+</ul>
