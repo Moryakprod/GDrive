@@ -5,6 +5,5 @@ from apps.vdrive.views import GDriveListView
 app_name = 'login'
 
 urlpatterns = [
-    path('', GDriveListView.as_view()),
-    path('form/', GDriveListView.as_view()),
+    path('', GDriveListView.as_view(), name='list'),
 ]
