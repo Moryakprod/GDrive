@@ -9,7 +9,6 @@ from django.shortcuts import render
 from django.urls import reverse
 
 
-
 class GDriveListView(LoginRequiredMixin, TemplateView):
     template_name = 'vdrive/list.html'
 
@@ -31,20 +30,3 @@ class GDriveListView(LoginRequiredMixin, TemplateView):
 class UserListView(ListView):
     model = Processing
     template_name = 'vdrive/imports_list.html'
-
-
-
-
-
-# class UserDetailView(DetailView):
-#     model = UserSocialAuth
-#
-# class UserResultView(UserDetailView):
-#     template_name = 'vdrive/imports.html'
-#
-# class UserUpdateView(UpdateView):
-#     model = UserSocialAuth
-#
-#     def get_success_url(self):
-#         return reverse('UserSocialAuth:detail')
-#             kwargs= {}
