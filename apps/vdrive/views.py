@@ -1,7 +1,12 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
+
 from django.views.generic import TemplateView
+from django.views.generic import ListView, DetailView, UpdateView
+from apps.vdrive.models import VideoProcessing, Processing
+from django.shortcuts import render
+from django.urls import reverse
 
 
 class GDriveListView(LoginRequiredMixin, TemplateView):
@@ -20,3 +25,8 @@ class GDriveListView(LoginRequiredMixin, TemplateView):
         return {
             'files': self.get_files_list()
         }
+
+
+class UserListView(ListView):
+    model = Processing
+    template_name = 'vdrive/imports_list.html'

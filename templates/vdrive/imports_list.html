@@ -1,0 +1,14 @@
+<ul>
+{% for process in object_list %}
+    <li>
+    {{ process.source_type }} - {{ process.date }} <br>
+    </li>
+    <ul>
+        {% for video in process.videos.all %}
+        <li>
+            {{ video.status }} - {{ video.source_id }}<br>
+        </li>
+    </ul>
+    {% endfor %}
+{% endfor %}
+</ul>

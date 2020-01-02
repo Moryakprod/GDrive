@@ -7,4 +7,5 @@ app_name = 'login'
 
 urlpatterns = [
     path('', views.GDriveListView.as_view()),
+    path('imports_list/', views.UserListView.as_view()),
 ]
