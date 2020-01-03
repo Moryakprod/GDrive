@@ -7,7 +7,7 @@ from apps.vdrive.models import Processing
 from django.contrib.auth.mixins import LoginRequiredMixin
 
 
-class GDriveListForm(LoginRequiredMixin, forms.Form):
+class GDriveListForm(forms.Form):
     success_url = reverse_lazy('vdrive:list')
 
     def __init__(self, *args, videos=None, **kwargs):
@@ -19,7 +19,7 @@ class GDriveListForm(LoginRequiredMixin, forms.Form):
             self.initial[field_id] = True
 
 
-class GDriveListView(FormView):
+class GDriveListView(LoginRequiredMixin, FormView):
     template_name = 'vdrive/list.html'
     form_class = GDriveListForm
     success_url = reverse_lazy('vdrive:list')
