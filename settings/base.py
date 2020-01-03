@@ -134,6 +134,7 @@ REDIS_HOST = 'redis'
 
 # Celery
 CELERY_REDIS_DB = '0'
+CACHE_REDIS_DB = '1'
 CELERY_BROKER_URL = 'redis://{0}:{1}/{2}'.format(REDIS_HOST, REDIS_PORT, CELERY_REDIS_DB)
 CELERY_RESULT_BACKEND = 'redis://{0}:{1}/{2}'.format(REDIS_HOST, REDIS_PORT, CELERY_REDIS_DB)
 CELERY_ACCEPT_CONTENT = ['application/json']
@@ -146,7 +147,7 @@ SESSION_CACHE_ALIAS = "default"
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": CELERY_BROKER_URL,
+        "LOCATION": 'redis://{0}:{1}/{2}'.format(REDIS_HOST, REDIS_PORT, CACHE_REDIS_DB),
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         }
@@ -177,9 +178,22 @@ AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
 )
 
-
 SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = '517394967633-lalgtan590acmsevftltm3op0r78ap8r.apps.googleusercontent.com'
 SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = 'lufONhl4DT8tasoOdppxNsUG'
 SOCIAL_AUTH_GOOGLE_OAUTH2_AUTH_EXTRA_ARGUMENTS = {'access_type': 'offline'}
-
 SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE = ['https://www.googleapis.com/auth/drive']
+
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/'
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': os.environ['POSTGRES_DB'],
+        'USER': os.environ['POSTGRES_USER'],
+        'PASSWORD': os.environ['POSTGRES_PASSWORD'],
+        'HOST': os.environ['POSTGRES_HOST'],
+        'PORT': os.environ['POSTGRES_PORT'],
+        'ATOMIC_REQUESTS': True
+    }
+}
