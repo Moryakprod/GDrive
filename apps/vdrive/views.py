@@ -4,10 +4,11 @@ from django import forms
 from django.urls import reverse_lazy
 from django.views.generic import ListView, FormView
 from apps.vdrive.models import Processing
+from django.contrib.auth.mixins import LoginRequiredMixin
 
 
-class GDriveListForm(forms.Form):
-    success_url = reverse_lazy('list_data:list')
+class GDriveListForm(LoginRequiredMixin, forms.Form):
+    success_url = reverse_lazy('vdrive:list')
 
     def __init__(self, *args, videos=None, **kwargs):
         super().__init__(*args, **kwargs)
@@ -21,7 +22,7 @@ class GDriveListForm(forms.Form):
 class GDriveListView(FormView):
     template_name = 'vdrive/list.html'
     form_class = GDriveListForm
-    success_url = reverse_lazy('list_data:list')
+    success_url = reverse_lazy('vdrive:list')
 
     def get_form_kwargs(self):
         """Return the keyword arguments for instantiating the form."""

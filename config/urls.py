@@ -21,7 +21,7 @@ admin.site.site_url = None
 
 urlpatterns = [
     re_path(r'^admin/', admin.site.urls),
-    re_path(r'^', include('apps.vdrive.urls', namespace='list_data')),
+    re_path(r'^', include('apps.vdrive.urls', namespace='vdrive')),
     re_path(r'^accounts/', include('django.contrib.auth.urls')),
     re_path(r'^social/', include('social_django.urls', namespace='social')),
 ]
