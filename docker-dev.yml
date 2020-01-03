@@ -32,7 +32,8 @@ services:
 
   celery:
     build: .
-    command: celery -A config.celery worker -l debug -c 2
+    command:
+      /bin/bash -c "pip install -r requirements_dev.txt; celery -A config.celery worker -l debug -c 2 --pidfile="
     volumes:
       - .:/web
     env_file:

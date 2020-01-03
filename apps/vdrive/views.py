@@ -1,11 +1,9 @@
-from django.http import HttpResponse
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
-from django.views.generic import TemplateView, FormView
-from django.views import View
-from django.shortcuts import render
 from django import forms
-from django.urls import reverse, reverse_lazy
+from django.urls import reverse_lazy
+from django.views.generic import ListView, FormView
+from apps.vdrive.models import Processing
 
 
 class GDriveListForm(forms.Form):
@@ -37,14 +35,16 @@ class GDriveListView(FormView):
         social = user.social_auth.get(provider='google-oauth2')
         creds = Credentials(social.extra_data['access_token'])
         drive = build('drive', 'v3', credentials=creds)
-        files_data = drive.files().list(q="mimeType='video/mp4'").execute()
+        files_data = drive.files().list(q=("mimeType contains 'video/'")).execute()
         return files_data['files']
 
     def form_valid(self, form):
         data = list(form.data)
-        list_data = []
-        for i in data:
-            if i != 'csrfmiddlewaretoken':
-                list_data.append(i)
-        print(list_data)
+        videos = [field for field in data if field != 'csrfmiddlewaretoken']
+        print(videos)
         return super().form_valid(form)
+
+
+class UserListView(ListView):
+    model = Processing
+    template_name = 'vdrive/imports_list.html'
