@@ -1,4 +1,3 @@
-from time import sleep
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from apiclient.discovery import build
@@ -8,7 +7,7 @@ from googleapiclient.http import MediaIoBaseDownload
 
 
 def download(id, user):
-    social = user.social_auth.get(provider='google-oauth2')
+    social = user.social_auth.filter(provider='google-oauth2').first()
     creds = Credentials(social.extra_data['access_token'])
     drive = build('drive', 'v3', credentials=creds)
     files_data = drive.files().list(q=("mimeType contains 'video/'"),
@@ -23,7 +22,7 @@ def download(id, user):
             request = drive.files().get_media(fileId=id)
             print('request %s' % request)
 
-            with tempfile.NamedTemporaryFile(mode='w+b', delete=True) as f:
+            with tempfile.NamedTemporaryFile(mode='w+b', delete=False) as f:
                 downloader = MediaIoBaseDownload(f, request)
                 done = False
                 while done is False:

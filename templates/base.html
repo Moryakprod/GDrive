@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>GDRIVE-DOWNLOADER</title>
 </head>
 <body>
 <div>
@@ -12,11 +12,12 @@
 </div>
 <div>
 {% block content %}
+    <li><a href="{% url 'file' %}">files</a></li>
 {% endblock %}
 </div>
 <div>
 {% block footer %}
-FOOTER
+    FOOTER
 {% endblock %}
 </div>
 </body>
