@@ -13,6 +13,7 @@ from django.shortcuts import render
 from django.urls import reverse
 
 
+
 class GDriveListForm(forms.Form):
     success_url = reverse_lazy('vdrive:list')
 
@@ -58,20 +59,21 @@ class GDriveListView(LoginRequiredMixin, FormView):
         return super().form_valid(form)
 
 
-class Downloader(LoginRequiredMixin, TemplateView):
+class DownloaderView(LoginRequiredMixin, TemplateView):
     template_name = 'vdrive/download.html'
 
-    def get_files_list(self):
-        # user = self.request.user
+
+    def get(self, request, id):
+        user = self.request.user
+        print('POST ID', id)
+        id = id
+        download(id, user)
+        print('Downloaded', id)
         # id = '0BxqwaD57DT2fQ29oWkJTdWU5dFU'
         # start_download = download(id=id, user=user)
         # print('Start dow', download(id=id, user=user))
-        return
+        return render(request, 'vdrive/download.html')
 
-    def get_context_data(self):
-        return{
-            self.get_files_list()
-        }
 
 class UserListView(ListView):
     model = Processing
