@@ -10,7 +10,6 @@ from apps.vdrive.tasks import download
 from django.views.generic import ListView, DetailView, UpdateView
 from apps.vdrive.models import VideoProcessing, Processing
 from django.shortcuts import render
-from django.urls import reverse
 
 
 
@@ -46,7 +45,6 @@ class GDriveListView(LoginRequiredMixin, FormView):
         files_data = drive.files().list(q=("mimeType contains 'video/'"),
                                         spaces='drive',
                                         fields='files(id, name)').execute()
-        #print(files_data)
         return files_data['files']
 
     def form_valid(self, form):
@@ -55,7 +53,6 @@ class GDriveListView(LoginRequiredMixin, FormView):
         videos = [field for field in data if field != 'csrfmiddlewaretoken']
         for id in videos:
             download(id, user)
-            print('Downloaded', id)
         return super().form_valid(form)
 
 
@@ -65,10 +62,7 @@ class DownloaderView(LoginRequiredMixin, TemplateView):
 
     def get(self, request, id):
         user = self.request.user
-        print('POST ID', id)
-        id = id
         download(id, user)
-        print('Downloaded', id)
         return render(request, 'vdrive/download.html')
 
 

@@ -12,8 +12,7 @@ app_name = 'login'
 urlpatterns = [
 
     path('', views.GDriveListView.as_view()),
-    path('download/', views.Downloader.as_view(), name='Downloader'),
-    #path(r'^download/(?P<file.id>\w+)/', tasks.GDriveDownload.as_view()),
+    path('download/<str:id>', views.DownloaderView.as_view(), name='Downloader'),
     path('imports_list/', views.UserListView.as_view()),
 
     path('', GDriveListView.as_view(), name='list'),
