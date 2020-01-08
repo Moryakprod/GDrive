@@ -69,9 +69,6 @@ class DownloaderView(LoginRequiredMixin, TemplateView):
         id = id
         download(id, user)
         print('Downloaded', id)
-        # id = '0BxqwaD57DT2fQ29oWkJTdWU5dFU'
-        # start_download = download(id=id, user=user)
-        # print('Start dow', download(id=id, user=user))
         return render(request, 'vdrive/download.html')
 
 
