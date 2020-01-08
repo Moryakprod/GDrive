@@ -5,6 +5,12 @@ from django.urls import reverse_lazy
 from django.views.generic import ListView, FormView
 from apps.vdrive.models import Processing
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views.generic import TemplateView
+from apps.vdrive.tasks import download
+from django.views.generic import ListView, DetailView, UpdateView
+from apps.vdrive.models import VideoProcessing, Processing
+from django.shortcuts import render
+
 
 
 class GDriveListForm(forms.Form):
@@ -16,7 +22,7 @@ class GDriveListForm(forms.Form):
             field_name = video['name']
             field_id = video['id']
             self.fields[field_id] = forms.BooleanField(required=False, label=field_name)
-            self.initial[field_id] = True
+            self.initial[field_id] = False
 
 
 class GDriveListView(LoginRequiredMixin, FormView):
@@ -33,17 +39,31 @@ class GDriveListView(LoginRequiredMixin, FormView):
 
     def get_files_list(self):
         user = self.request.user
-        social = user.social_auth.get(provider='google-oauth2')
+        social = user.social_auth.filter(provider='google-oauth2').first()
         creds = Credentials(social.extra_data['access_token'])
         drive = build('drive', 'v3', credentials=creds)
-        files_data = drive.files().list(q=("mimeType contains 'video/'")).execute()
+        files_data = drive.files().list(q=("mimeType contains 'video/'"),
+                                        spaces='drive',
+                                        fields='files(id, name)').execute()
         return files_data['files']
 
     def form_valid(self, form):
         data = list(form.data)
+        user = self.request.user
         videos = [field for field in data if field != 'csrfmiddlewaretoken']
-        print(videos)
+        for id in videos:
+            download(id, user)
         return super().form_valid(form)
+
+
+class DownloaderView(LoginRequiredMixin, TemplateView):
+    template_name = 'vdrive/download.html'
+
+
+    def get(self, request, id):
+        user = self.request.user
+        download(id, user)
+        return render(request, 'vdrive/download.html')
 
 
 class UserListView(ListView):
