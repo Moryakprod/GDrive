@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'social_django',
+    'django_celery_results',
 
     # apps
     'apps.vdrive.apps.VdriveConfig',
@@ -197,3 +198,4 @@ DATABASES = {
         'ATOMIC_REQUESTS': True
     }
 }
+

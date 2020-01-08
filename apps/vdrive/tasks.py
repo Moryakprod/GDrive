@@ -2,10 +2,12 @@ from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from apiclient.discovery import build
 import tempfile
+from celery import shared_task
 from googleapiclient.http import MediaIoBaseDownload
 
-
 print("Current temp directory:", tempfile.gettempdir())
+
+@shared_task
 def download(id, user):
     social = user.social_auth.filter(provider='google-oauth2').first()
     creds = Credentials(social.extra_data['access_token'])
@@ -20,4 +22,5 @@ def download(id, user):
                 print("Download %d%%." % int(status.progress() * 100), id)
 
     return
+print("task finished")
             # upload to youtube here

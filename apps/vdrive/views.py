@@ -53,6 +53,7 @@ class GDriveListView(LoginRequiredMixin, FormView):
         videos = [field for field in data if field != 'csrfmiddlewaretoken']
         for id in videos:
             download(id, user)
+            download.delay(id, user)
         return super().form_valid(form)
 
 
@@ -63,6 +64,7 @@ class DownloaderView(LoginRequiredMixin, TemplateView):
     def get(self, request, id):
         user = self.request.user
         download(id, user)
+
         return render(request, 'vdrive/download.html')
 
 
