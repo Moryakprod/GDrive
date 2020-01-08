@@ -42,13 +42,19 @@ class GDriveListView(LoginRequiredMixin, FormView):
         social = user.social_auth.filter(provider='google-oauth2').first()
         creds = Credentials(social.extra_data['access_token'])
         drive = build('drive', 'v3', credentials=creds)
-        files_data = drive.files().list(q=("mimeType contains 'video/'")).execute()
+        files_data = drive.files().list(q=("mimeType contains 'video/'"),
+                                        spaces='drive',
+                                        fields='files(id, name)').execute()
+        #print(files_data)
         return files_data['files']
 
     def form_valid(self, form):
         data = list(form.data)
+        user = self.request.user
         videos = [field for field in data if field != 'csrfmiddlewaretoken']
-        print(videos)
+        for id in videos:
+            download(id, user)
+            print('Downloaded', id)
         return super().form_valid(form)
 
 
@@ -56,11 +62,11 @@ class Downloader(LoginRequiredMixin, TemplateView):
     template_name = 'vdrive/download.html'
 
     def get_files_list(self):
-        user = self.request.user
-        id = '0BxqwaD57DT2fQ29oWkJTdWU5dFU'
-        start_download = download(id=id, user=user)
-        print('Start dow', download(id=id, user=user))
-        return start_download()
+        # user = self.request.user
+        # id = '0BxqwaD57DT2fQ29oWkJTdWU5dFU'
+        # start_download = download(id=id, user=user)
+        # print('Start dow', download(id=id, user=user))
+        return
 
     def get_context_data(self):
         return{
