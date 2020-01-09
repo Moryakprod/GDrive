@@ -4,11 +4,14 @@ from apiclient.discovery import build
 import tempfile
 from celery import shared_task
 from googleapiclient.http import MediaIoBaseDownload
+from django.contrib.auth.models import User
 
 print("Current temp directory:", tempfile.gettempdir())
 
+
 @shared_task
-def download(id, user):
+def download(id):
+    user = User.objects.filter().last()
     social = user.social_auth.filter(provider='google-oauth2').first()
     creds = Credentials(social.extra_data['access_token'])
     drive = build('drive', 'v3', credentials=creds)
@@ -20,7 +23,6 @@ def download(id, user):
             while done is False:
                 status, done = downloader.next_chunk()
                 print("Download %d%%." % int(status.progress() * 100), id)
-
+                # download.delay(id, user)
     return
-print("task finished")
             # upload to youtube here

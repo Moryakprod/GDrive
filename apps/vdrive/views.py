@@ -2,15 +2,12 @@ from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from django import forms
 from django.urls import reverse_lazy
-from django.views.generic import ListView, FormView
-from apps.vdrive.models import Processing
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views.generic import TemplateView
+from django.views.generic import TemplateView, ListView, FormView, UpdateView
 from apps.vdrive.tasks import download
-from django.views.generic import ListView, DetailView, UpdateView
 from apps.vdrive.models import VideoProcessing, Processing
 from django.shortcuts import render
-
+from django.contrib.auth.models import User
 
 
 class GDriveListForm(forms.Form):
@@ -38,7 +35,7 @@ class GDriveListView(LoginRequiredMixin, FormView):
         return kwargs
 
     def get_files_list(self):
-        user = self.request.user
+        user = User.objects.filter().last()
         social = user.social_auth.filter(provider='google-oauth2').first()
         creds = Credentials(social.extra_data['access_token'])
         drive = build('drive', 'v3', credentials=creds)
@@ -49,11 +46,9 @@ class GDriveListView(LoginRequiredMixin, FormView):
 
     def form_valid(self, form):
         data = list(form.data)
-        user = self.request.user
         videos = [field for field in data if field != 'csrfmiddlewaretoken']
         for id in videos:
-            download(id, user)
-            download.delay(id, user)
+            download.apply_async(args=[id], countdown=2)
         return super().form_valid(form)
 
 
@@ -61,10 +56,8 @@ class DownloaderView(LoginRequiredMixin, TemplateView):
     template_name = 'vdrive/download.html'
 
 
-    def get(self, request, id):
-        user = self.request.user
-        download(id, user)
-
+    def get(request, id):
+        download(id)
         return render(request, 'vdrive/download.html')
 
 
