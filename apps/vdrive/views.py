@@ -11,7 +11,6 @@ from django.contrib.auth.models import User
 
 
 class GDriveListForm(forms.Form):
-    success_url = reverse_lazy('vdrive:list')
 
     def __init__(self, *args, videos=None, **kwargs):
         super().__init__(*args, **kwargs)
@@ -25,7 +24,7 @@ class GDriveListForm(forms.Form):
 class GDriveListView(LoginRequiredMixin, FormView):
     template_name = 'vdrive/list.html'
     form_class = GDriveListForm
-    success_url = reverse_lazy('vdrive:list')
+    success_url = reverse_lazy('vdrive:imports_list')
 
     def get_form_kwargs(self):
         """Return the keyword arguments for instantiating the form."""
@@ -47,8 +46,15 @@ class GDriveListView(LoginRequiredMixin, FormView):
     def form_valid(self, form):
         data = list(form.data)
         videos = [field for field in data if field != 'csrfmiddlewaretoken']
-        for id in videos:
-            download.apply_async(args=[id], countdown=2)
+        processing = Processing.objects.create(user=self.request.user, source_type=Processing.Type.GDRIVE)
+        for video_id in videos:
+            video_processing, created = VideoProcessing.objects.get_or_create(source_id=video_id, defaults={'processing': processing})
+            video_processing.processing = processing
+            video_processing.status = VideoProcessing.Status.WAITING
+            video_processing.error_message_video = ''
+            video_processing.save()
+            download.delay(video_processing.pk)
+
         return super().form_valid(form)
 
 
@@ -56,8 +62,8 @@ class DownloaderView(LoginRequiredMixin, TemplateView):
     template_name = 'vdrive/download.html'
 
 
-    def get(request, id):
-        download(id)
+    def get(request, video_id):
+        #download(video_id)
         return render(request, 'vdrive/download.html')
 
 

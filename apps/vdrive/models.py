@@ -21,11 +21,11 @@ class Processing(models.Model):
 class VideoProcessing(models.Model):
 
     class Status(models.TextChoices):
-        DOWNLOAD = 'DW', _('Download')
         WAITING = 'WT', _('Waiting to upload')
-        IN_PROGRESS = 'IN_PR', _('In progress of uploading')
-        ERROR_MESSAGE = 'ERROR_MESS', _('Error message')
-        SUCCESSFUL_UPLOAD = 'SUCC_UP', _('Successfully Uploaded')
+        DOWNLOAD = 'DW', _('Download')
+        UPLOAD = 'UPL', _('In progress of uploading')
+        ERROR = 'ERROR_MESS', _('Error message')
+        SUCCESS = 'SUCC_UP', _('Successfully Uploaded')
 
     processing = models.ForeignKey('Processing', on_delete=models.CASCADE, related_name='videos')
     source_id = models.CharField(verbose_name=_(" id of video in the source"),max_length=250, primary_key=True, unique=True,)
