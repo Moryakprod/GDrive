@@ -48,11 +48,7 @@ class GDriveListView(LoginRequiredMixin, FormView):
         videos = [field for field in data if field != 'csrfmiddlewaretoken']
         processing = Processing.objects.create(user=self.request.user, source_type=Processing.Type.GDRIVE)
         for video_id in videos:
-            video_processing, created = VideoProcessing.objects.get_or_create(source_id=video_id, defaults={'processing': processing})
-            video_processing.processing = processing
-            video_processing.status = VideoProcessing.Status.WAITING
-            video_processing.error_message_video = ''
-            video_processing.save()
+            video_processing = VideoProcessing.objects.create(source_id=video_id, processing=processing)
             download.delay(video_processing.pk)
 
         return super().form_valid(form)
@@ -61,12 +57,11 @@ class GDriveListView(LoginRequiredMixin, FormView):
 class DownloaderView(LoginRequiredMixin, TemplateView):
     template_name = 'vdrive/download.html'
 
-
     def get(request, video_id):
         #download(video_id)
         return render(request, 'vdrive/download.html')
 
 
-class UserListView(ListView):
+class UserListView(LoginRequiredMixin, ListView):
     model = Processing
     template_name = 'vdrive/imports_list.html'

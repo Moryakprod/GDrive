@@ -6,9 +6,6 @@ from googleapiclient.discovery import build
 import tempfile
 from celery import shared_task
 from googleapiclient.http import MediaIoBaseDownload
-from django.contrib.auth.models import User
-from celery import Celery
-from celery.result import ResultBase
 from apps.vdrive.models import VideoProcessing, Processing
 print("Current temp directory:", tempfile.gettempdir())
 
@@ -20,8 +17,6 @@ def download(video_processing_pk):
     social = user.social_auth.filter(provider='google-oauth2').first()
     video_id = video_processing.source_id
     print(f'Downloading {video_id} for {user}')
-    creds = Credentials(social.extra_data['access_token'])
-    drive = build('drive', 'v3', credentials=creds)
     if video_id is None:
         video_processing.status = VideoProcessing.Status.ERROR
         msg = 'No Id provided'
@@ -29,11 +24,15 @@ def download(video_processing_pk):
         video_processing.save()
         raise ValueError(msg)
 
-    request = drive.files().get_media(fileId=video_id)
+
     with tempfile.NamedTemporaryFile(mode='w+b', delete=True) as f:
+
         video_processing.status = VideoProcessing.Status.DOWNLOAD
         video_processing.save()
         try:
+            creds = Credentials(social.extra_data['access_token'])
+            drive = build('drive', 'v3', credentials=creds)
+            request = drive.files().get_media(fileId=video_id)
             downloader = MediaIoBaseDownload(f, request)
             done = False
             while done is False:
