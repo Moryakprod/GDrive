@@ -30,10 +30,14 @@ class VideoProcessing(models.Model):
 
     processing = models.ForeignKey('Processing', on_delete=models.CASCADE, related_name='videos')
     source_id = models.CharField(verbose_name=_(" id of video in the source"), max_length=250)
-    name = models.CharField(verbose_name=_("name of the video"), max_length=250)
+    progress = models.IntegerField(_('Progress'), null=True)
+    #name = models.CharField(verbose_name=_("name of the video"), max_length=250)
     status = models.CharField(max_length=10, choices=Status.choices, default=Status.WAITING,)
     error_message_video = models.TextField(max_length=500, blank=True)
     youtube_id = models.CharField(verbose_name=_("id of youtube uploaded video"), max_length=250, blank=True)
     youtube_link = models.URLField(verbose_name=_("link of the video from youtube"), blank=True)
 
+    @property
+    def youtube_link(self):
+        return 'youtu.be/aaaa'
 

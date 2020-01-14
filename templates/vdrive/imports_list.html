@@ -1,3 +1,5 @@
+{% extends "base.html" %}
+{% block content %}
 <ul>
 {% for process in object_list %}
     <li>
@@ -5,7 +7,7 @@
     <ul>
         {% for video in process.videos.all %}
         <li>
-            {{ video.status }} - {{ video.source_id }} {{ video.error_message_video }}
+            {{ video.status }} - {{ video.source_id }} {{ video.error_message_video }} <a href="{{ video.youtube_link }}">{{ video.youtube_link }}</a>
         </li>
         {% endfor %}
 
@@ -13,3 +15,4 @@
     </li>
 {% endfor %}
 </ul>
+{% endblock %}
