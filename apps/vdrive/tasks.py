@@ -38,6 +38,7 @@ def download(video_processing_pk):
             while done is False:
                 status, done = downloader.next_chunk(1024)
                 print("Download %d%%." % int(status.progress() * 100), video_id)
+                
 
             video_processing.status = VideoProcessing.Status.UPLOAD
             video_processing.save()

@@ -9,8 +9,8 @@ from django.utils.translation import gettext_lazy as _
 
 class Video(models.Model):
     class Type(models.TextChoices):
-        GDRIVE = 'GD', _('Gdrive type')
-        GPHOTOS = 'GPH', _('Gphotos type')
+        GDRIVE = 'Google Drive', _('Gdrive type')
+        GPHOTOS = 'Google Photos', _('Gphotos type')
 
     source_id = models.CharField(verbose_name=_(" id of video in the source"), max_length=250)
     name = models.CharField(verbose_name=_("name of the video"), max_length=250)
@@ -33,9 +33,7 @@ class VideoProcessing(models.Model):
         SUCCESS = 'success', _('Successfully Uploaded')
 
     processing = models.ForeignKey('Processing', on_delete=models.CASCADE, related_name='videos')
-    videos = models.ForeignKey('Video', on_delete=models.CASCADE, related_name='videos')
-    status = models.CharField(max_length=10, choices=Status.choices, default=Status.WAITING,)
-    error_message_video = models.TextField(max_length=500, blank=True)
-    #youtube_link = models.URLField(verbose_name=_("link of the video from youtube"), blank=True)
-
+    videos = models.ForeignKey('Video', on_delete=models.CASCADE, related_name='processings')
+    status = models.CharField(max_length=50, choices=Status.choices, default=Status.WAITING,)
+    error_message_video = models.TextField(blank=True)
 
