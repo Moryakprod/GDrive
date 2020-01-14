@@ -21,14 +21,16 @@ class Processing(models.Model):
 class VideoProcessing(models.Model):
 
     class Status(models.TextChoices):
-        WAITING = 'WT', _('Waiting to upload')
-        DOWNLOAD = 'DW', _('Download')
-        UPLOAD = 'UPL', _('In progress of uploading')
-        ERROR = 'ERROR_MESS', _('Error message')
-        SUCCESS = 'SUCC_UP', _('Successfully Uploaded')
+        WAITING = 'waiting', _('Waiting to upload')
+        DOWNLOAD = 'download', _('Download')
+        UPLOAD = 'uploading', _('In progress of uploading')
+        ERROR = 'errors', _('Error message')
+        SUCCESS = 'success', _('Successfully Uploaded')
+
 
     processing = models.ForeignKey('Processing', on_delete=models.CASCADE, related_name='videos')
     source_id = models.CharField(verbose_name=_(" id of video in the source"), max_length=250)
+    name = models.CharField(verbose_name=_("name of the video"), max_length=250)
     status = models.CharField(max_length=10, choices=Status.choices, default=Status.WAITING,)
     error_message_video = models.TextField(max_length=500, blank=True)
     youtube_id = models.CharField(verbose_name=_("id of youtube uploaded video"), max_length=250, blank=True)

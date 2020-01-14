@@ -7,7 +7,7 @@ import tempfile
 from celery import shared_task
 from googleapiclient.http import MediaIoBaseDownload
 from apps.vdrive.models import VideoProcessing, Processing
-print("Current temp directory:", tempfile.gettempdir())
+
 
 
 @shared_task
@@ -50,10 +50,10 @@ def download(video_processing_pk):
 
         sleep(10)
 
-        video_processing.status = VideoProcessing.Status.ERROR
-        video_processing.error_message_video = 'No upload Implemented yet'
-        video_processing.save()
-        raise NotImplementedError
+        # video_processing.status = VideoProcessing.Status.ERROR
+        # video_processing.error_message_video = 'No upload Implemented yet'
+        # video_processing.save()
+        # raise NotImplementedError
 
         video_processing.status = VideoProcessing.Status.SUCCESS
         video_processing.save()

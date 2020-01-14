@@ -45,6 +45,7 @@ class GDriveListView(LoginRequiredMixin, FormView):
 
     def form_valid(self, form):
         data = list(form.data)
+        print(data)
         videos = [field for field in data if field != 'csrfmiddlewaretoken']
         processing = Processing.objects.create(user=self.request.user, source_type=Processing.Type.GDRIVE)
         for video_id in videos:
@@ -52,14 +53,6 @@ class GDriveListView(LoginRequiredMixin, FormView):
             download.delay(video_processing.pk)
 
         return super().form_valid(form)
-
-
-class DownloaderView(LoginRequiredMixin, TemplateView):
-    template_name = 'vdrive/download.html'
-
-    def get(request, video_id):
-        #download(video_id)
-        return render(request, 'vdrive/download.html')
 
 
 class UserListView(LoginRequiredMixin, ListView):
