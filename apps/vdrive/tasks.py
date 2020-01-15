@@ -11,7 +11,7 @@ from celery import shared_task
 from googleapiclient.errors import HttpError
 from googleapiclient.http import MediaIoBaseDownload, MediaFileUpload
 from apps.vdrive.models import VideoProcessing, Processing
-from settings.base import RETRIABLE_STATUS_CODES, RETRIABLE_EXCEPTIONS, MAX_RETRIES
+from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
@@ -29,6 +29,7 @@ def initialize_upload(youtube, f):
     )
 
     logger.debug(f.name)
+
     insert_request = youtube.videos().insert(
         part=",".join(body.keys()),
         body=body,
@@ -48,17 +49,17 @@ def initialize_upload(youtube, f):
                 else:
                     raise ValueError("The upload failed with an unexpected response: %s" % response)
         except HttpError as er:
-            if er.resp.status in RETRIABLE_STATUS_CODES:
+            if er.resp.status in settings.RETRIABLE_STATUS_CODES:
                 error = "A retriable HTTP error %d occurred:\n%s" % (er.resp.status, er.content)
             else:
                 raise
-        except RETRIABLE_EXCEPTIONS as er:
+        except settings.RETRIABLE_EXCEPTIONS as er:
             error = "A retriable error occurred: %s" % er
 
         if error is not None:
             print(error)
             retry += 1
-            if retry > MAX_RETRIES:
+            if retry > settings.MAX_RETRIES:
                 raise ValueError("No longer attempting to retry.")
 
             max_sleep = 2 ** retry

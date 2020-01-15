@@ -208,7 +208,6 @@ REDIRECT_URIS = ['http://localhost:8080/', 'http://127.0.0.1:8000/complete/googl
                 'http://127.0.0.1:8000/', 'http://127.0.0.1:8000/social/complete/google-oauth2/']
 
 
-
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/accounts/login/'
 
