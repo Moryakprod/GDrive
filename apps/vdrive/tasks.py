@@ -1,4 +1,3 @@
-import os
 import logging
 from datetime import time
 from time import sleep
@@ -16,6 +15,7 @@ from settings.base import RETRIABLE_STATUS_CODES, RETRIABLE_EXCEPTIONS, MAX_RETR
 
 logger = logging.getLogger(__name__)
 
+
 def initialize_upload(youtube, f):
     body = dict(
         snippet=dict(
@@ -27,10 +27,6 @@ def initialize_upload(youtube, f):
             privacyStatus="unlisted"
         )
     )
-
-    # media_file = 'tmp/video2.mp4'
-    # if not os.path.exists(media_file):
-    #     exit('Please specify the complete valid file location.')
 
     logger.debug(f.name)
     insert_request = youtube.videos().insert(
@@ -116,10 +112,6 @@ def download(video_processing_pk):
         # raise NotImplementedError
 
         try:
-            # video_processing = VideoProcessing.objects.get(pk=initialize_upload)
-            # user = video_processing.processing.user
-            # social = user.social_auth.filter(provider='google-oauth2').first()
-            # creds = Credentials(social.extra_data['access_token'], social.extra_data['refresh_token'])
             youtube = build("youtube", "v3", credentials=creds)
             youtube_id = initialize_upload(youtube, f)
             video_processing.youtube_id = youtube_id
