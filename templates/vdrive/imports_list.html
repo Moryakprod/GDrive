@@ -1,14 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
 <ul>
 {% for process in object_list %}
     <li>
-    {{ process.source_type }} - {{ process.date }} <br>
-    </li>
+    {{ process.source_type }} - {{ process.date }}
     <ul>
-        {% for video in process.videos.all %}
+        {% for video_processing in process.videos.all %}
         <li>
-            {{ video.status }} - {{ video.source_id }}<br>
+            {{ video_processing.status }} - {{ video_processing.video.name }} {{ video_processing.error_message_video }} <a href="{{ video.youtube_link }}">{{ video.youtube_link }}</a>
         </li>
+        {% endfor %}
+
     </ul>
-    {% endfor %}
+    </li>
 {% endfor %}
 </ul>
+{% endblock %}
