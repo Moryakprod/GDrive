@@ -13,6 +13,9 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 import datetime
 import os
 
+import httplib2
+import http.client
+
 from apps.utils.manage_secret_key import manage_secret_key
 
 
@@ -184,6 +187,33 @@ SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = '517394967633-lalgtan590acmsevftltm3op0r78ap8r.a
 SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = 'lufONhl4DT8tasoOdppxNsUG'
 SOCIAL_AUTH_GOOGLE_OAUTH2_AUTH_EXTRA_ARGUMENTS = {'access_type': 'offline'}
 SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE = ['https://www.googleapis.com/auth/drive']
+
+
+
+
+MAX_RETRIES = 10
+
+RETRIABLE_EXCEPTIONS = (httplib2.HttpLib2Error, IOError, http.client.NotConnected, http.client.IncompleteRead,
+                        http.client.ImproperConnectionState, http.client.CannotSendRequest,
+                        http.client.CannotSendHeader, http.client.ResponseNotReady, http.client.BadStatusLine)
+
+RETRIABLE_STATUS_CODES = [500, 502, 503, 504]
+
+YOUTUBE_API_SERVICE_NAME = "youtube"
+YOUTUBE_API_VERSION = "v3"
+
+CLIENT_ID = '517394967633-lalgtan590acmsevftltm3op0r78ap8r.apps.googleusercontent.com'
+
+TOKEN_URI = 'https://oauth2.googleapis.com/token'
+
+REDIRECT_URIS = ['http://localhost:8080/', 'http://127.0.0.1:8000/complete/google-oauth2',
+                'http://127.0.0.1:8000/complete/google-oauth2/', 'http://localhost:8000/complete/google-oauth2/',
+                'http://127.0.0.1:8000/', 'http://127.0.0.1:8000/social/complete/google-oauth2/']
+
+
+
+
+
 
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/accounts/login/'
