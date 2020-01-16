@@ -17,6 +17,7 @@ from settings.base import RETRIABLE_STATUS_CODES, RETRIABLE_EXCEPTIONS, MAX_RETR
 
 logger = logging.getLogger(__name__)
 
+
 def initialize_upload(youtube, file_descriptor):
     body = dict(
         snippet=dict(
@@ -57,10 +58,9 @@ def initialize_upload(youtube, file_descriptor):
             error = "A retriable error occurred: %s" % er
 
         if error is not None:
-            print(error)
             retry += 1
             if retry > MAX_RETRIES:
-                raise ValueError("No longer attempting to retry.")
+                raise ValueError(error, "No longer attempting to retry.")
 
             max_sleep = 2 ** retry
             sleep_seconds = random.random() * max_sleep
@@ -84,12 +84,12 @@ def download(video_processing_pk):
         raise ValueError(msg)
 
     with tempfile.NamedTemporaryFile(mode='w+b', delete=True) as file_descriptor:
-
         video_processing.status = VideoProcessing.Status.DOWNLOAD
         video_processing.save()
         try:
-            creds = Credentials(social.extra_data['access_token'], social.extra_data['refresh_token'], token_uri=settings.TOKEN_URI, client_id=settings.SOCIAL_AUTH_GOOGLE_OAUTH2_KEY,
-                            client_secret=settings.SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET)
+            creds = Credentials(social.extra_data['access_token'], social.extra_data['refresh_token'],
+                                token_uri=settings.TOKEN_URI, client_id=settings.SOCIAL_AUTH_GOOGLE_OAUTH2_KEY,
+                                client_secret=settings.SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET)
             drive = build('drive', 'v3', credentials=creds)
             request = drive.files().get_media(fileId=video_id)
             downloader = MediaIoBaseDownload(file_descriptor, request)
@@ -98,7 +98,7 @@ def download(video_processing_pk):
                 status, done = downloader.next_chunk(1024)
                 video_processing.progress = int(status.progress() * 100)
                 video_processing.save()
-                print("Download %d%%." % int(status.progress() * 100), video_id)
+                return "Download %d%%." % int(status.progress() * 100), video_id
 
             video_processing.status = VideoProcessing.Status.UPLOAD
             video_processing.save()
@@ -106,22 +106,11 @@ def download(video_processing_pk):
             video_processing.status = VideoProcessing.Status.ERROR
             video_processing.error_message_video = f'Error: {e}'
             raise
-
         sleep(10)
-
-        # video_processing.status = VideoProcessing.Status.ERROR
-        # video_processing.error_message_video = 'No upload Implemented yet'
-        # video_processing.save()
-        # raise NotImplementedError
-
         try:
-            # video_processing = VideoProcessing.objects.get(pk=initialize_upload)
-            # user = video_processing.processing.user
-            # social = user.social_auth.filter(provider='google-oauth2').first()
-            # creds = Credentials(social.extra_data['access_token'], social.extra_data['refresh_token'])
             youtube = build("youtube", "v3", credentials=creds)
             youtube_id = initialize_upload(youtube, file_descriptor)
             video_processing.youtube_id = youtube_id
             video_processing.save()
         except HttpError as er:
-            print("An HTTP error %d occurred:\n%s" % (er.resp.status, er.content))
+            return "An HTTP error %d occurred:\n%s" % (er.resp.status, er.content)

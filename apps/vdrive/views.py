@@ -15,8 +15,8 @@ from django.contrib.auth.models import User
 
 logger = logging.getLogger(__name__)
 
-class GDriveListForm(forms.Form):
 
+class GDriveListForm(forms.Form):
     def __init__(self, *args, user=None, **kwargs):
         super().__init__(*args, **kwargs)
         for video in user.videos.all():
@@ -32,8 +32,6 @@ class GDriveListView(LoginRequiredMixin, FormView):
     success_url = reverse_lazy('vdrive:imports_list')
 
     def get_form_kwargs(self):
-        """Return the keyword arguments for instantiating the form."""
-
         kwargs = super().get_form_kwargs()
         kwargs['user'] = self.request.user
         return kwargs
@@ -41,17 +39,16 @@ class GDriveListView(LoginRequiredMixin, FormView):
     def get_files_list(self):
         user = self.request.user
         social = user.social_auth.filter(provider='google-oauth2').first()
-        creds = Credentials(social.extra_data['access_token'], social.extra_data['refresh_token'], token_uri=settings.TOKEN_URI, client_id=settings.SOCIAL_AUTH_GOOGLE_OAUTH2_KEY, client_secret=settings.SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET)
+        creds = Credentials(social.extra_data['access_token'], social.extra_data['refresh_token'],
+                            token_uri=settings.TOKEN_URI, client_id=settings.SOCIAL_AUTH_GOOGLE_OAUTH2_KEY,
+                            client_secret=settings.SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET)
         drive = build('drive', 'v3', credentials=creds)
-        files_data = drive.files().list(q=("mimeType contains 'video/'"),
-                                        spaces='drive',
+        files_data = drive.files().list(q="mimeType contains 'video/'",spaces='drive',
                                         fields='files(id, name)').execute()
-
-
-
         logger.info(f'Found fies {files_data}')
         for item in files_data["files"]:
-            video = Video.objects.get_or_create(source_id=item['id'], name=item['name'], user=user, source_type=Video.Type.GDRIVE)
+            video = Video.objects.get_or_create(source_id=item['id'], name=item['name'],
+                                                user=user, source_type=Video.Type.GDRIVE)
         return files_data['files']
 
     def form_valid(self, form):
@@ -61,10 +58,9 @@ class GDriveListView(LoginRequiredMixin, FormView):
         for video_id in videos:
             video_processing = VideoProcessing.objects.create(video_id=video_id, processing=processing)
             video_processing.save()
-
             download.delay(video_processing.pk)
-
         return super().form_valid(form)
+
 
 class UserListView(LoginRequiredMixin, ListView):
     model = Video
