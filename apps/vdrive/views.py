@@ -38,12 +38,15 @@ class GDriveListView(LoginRequiredMixin, FormView):
 
     def get_files_list(self):
         user = self.request.user
+        print(user)
         social = user.social_auth.filter(provider='google-oauth2').first()
+        print(social)
         creds = Credentials(social.extra_data['access_token'], social.extra_data['refresh_token'],
                             token_uri=settings.TOKEN_URI, client_id=settings.SOCIAL_AUTH_GOOGLE_OAUTH2_KEY,
                             client_secret=settings.SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET)
+        print(creds)
         drive = build('drive', 'v3', credentials=creds)
-        files_data = drive.files().list(q="mimeType contains 'video/'",spaces='drive',
+        files_data = drive.files().list(q="mimeType contains 'video/'", spaces='drive',
                                         fields='files(id, name)').execute()
         logger.info(f'Found fies {files_data}')
         for item in files_data["files"]:
