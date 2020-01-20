@@ -32,6 +32,7 @@ class GDriveListView(LoginRequiredMixin, FormView):
     success_url = reverse_lazy('vdrive:imports_list')
 
     def get_form_kwargs(self):
+        GDriveListView.get_files_list(self)
         kwargs = super().get_form_kwargs()
         kwargs['user'] = self.request.user
         return kwargs
@@ -63,5 +64,5 @@ class GDriveListView(LoginRequiredMixin, FormView):
 
 
 class UserListView(LoginRequiredMixin, ListView):
-    model = Video
+    model = VideoProcessing
     template_name = 'vdrive/imports_list.html'
