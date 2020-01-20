@@ -95,7 +95,7 @@ def download(video_processing_pk):
             downloader = MediaIoBaseDownload(file_descriptor, request)
             done = False
             while done is False:
-                status, done = downloader.next_chunk(1024)
+                status, done = downloader.next_chunk()
                 video_processing.progress = int(status.progress() * 100)
                 video_processing.save()
                 return "Download %d%%." % int(status.progress() * 100), video_id
