@@ -11,6 +11,7 @@ from apps.vdrive.tasks import download
 from apps.vdrive.models import VideoProcessing, Processing
 from django.shortcuts import render
 from django.contrib.auth.models import User
+from .utils import get_google_credentials
 
 
 logger = logging.getLogger(__name__)
@@ -41,11 +42,7 @@ class GDriveListView(LoginRequiredMixin, FormView):
 
     def get_files_list(self):
         user = self.request.user
-        social = user.social_auth.filter(provider='google-oauth2').first()
-        creds = Credentials(social.extra_data['access_token'], social.extra_data['refresh_token'],
-                            token_uri=settings.TOKEN_URI, client_id=settings.SOCIAL_AUTH_GOOGLE_OAUTH2_KEY,
-                            client_secret=settings.SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET)
-        drive = build('drive', 'v3', credentials=creds)
+        drive = build('drive', 'v3', credentials=get_google_credentials(user))
         files_data = drive.files().list(q=("mimeType contains 'video/'"),
                                         spaces='drive',
                                         fields='files(id, name)').execute()
