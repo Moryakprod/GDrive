@@ -1,14 +1,9 @@
 import logging
 from datetime import time
-from time import sleep
 import random
 import time
 
 from .utils import get_google_credentials
-
-from django.conf import settings
-
-from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 import tempfile
 from celery import shared_task
@@ -67,9 +62,10 @@ def upload_to_youtube(youtube, file_descriptor):
 
 def download(video_processing_pk):
     video_processing = VideoProcessing.objects.get(pk=video_processing_pk)
-    user = video_processing.processing.user
+    video = video_processing.video
+    user = video.user
     creds = get_google_credentials(user)
-    video_id = video_processing.source_id
+    video_id = video.source_id
     print(f'Downloading {video_id} for {user}')
     if video_id is None:
         video_processing.status = VideoProcessing.Status.ERROR
@@ -94,7 +90,7 @@ def process(download, video_processing):
                 status, done = downloader.next_chunk(1024)
                 video_processing.progress = int(status.progress() * 100)
                 video_processing.save()
-                print("Download %d%%." % int(status.progress() * 100), download.video_id)
+                return "Download %d%%." % int(status.progress() * 100), download.video_id
 
             video_processing.status = VideoProcessing.Status.UPLOAD
             video_processing.save()

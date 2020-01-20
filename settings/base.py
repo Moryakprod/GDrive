@@ -204,8 +204,8 @@ CLIENT_ID = '517394967633-lalgtan590acmsevftltm3op0r78ap8r.apps.googleuserconten
 TOKEN_URI = 'https://oauth2.googleapis.com/token'
 
 REDIRECT_URIS = ['http://localhost:8080/', 'http://127.0.0.1:8000/complete/google-oauth2',
-                'http://127.0.0.1:8000/complete/google-oauth2/', 'http://localhost:8000/complete/google-oauth2/',
-                'http://127.0.0.1:8000/', 'http://127.0.0.1:8000/social/complete/google-oauth2/']
+                 'http://127.0.0.1:8000/complete/google-oauth2/', 'http://localhost:8000/complete/google-oauth2/',
+                 'http://127.0.0.1:8000/', 'http://127.0.0.1:8000/social/complete/google-oauth2/']
 
 
 LOGIN_REDIRECT_URL = '/'
@@ -222,4 +222,5 @@ DATABASES = {
         'ATOMIC_REQUESTS': True
     }
 }
+
 
