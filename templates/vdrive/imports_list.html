@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block content %}
+    <a href="http://127.0.0.1:8000/delete_list/">Delete</a>
+<ul>
+{% for process in object_list reversed%}
+    <li>
+    {{ process.video.source_type }} - {{ process.processing.date }}
+    <ul>
+        {% for processing in object_list reversed%}
+        <li>
+            {{ processing.status }} - {{ processing.video.name }} {{ processing.error_message_video }} <a href="{{ video.youtube_link }}">{{ video.youtube_link }}</a>
+        </li>
+        {% endfor %}
+
+    </ul>
+    </li>
+{% endfor %}
+</ul>
+{% endblock %}

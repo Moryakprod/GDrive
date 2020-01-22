@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>GDRIVE-DOWNLOADER</title>
+</head>
+<body>
+<div>
+{% block header %}
+ {% include "header.html" %}
+{% endblock %}
+</div>
+<div>
+{% block content %}
+    <li><a href="{% url 'file' %}">files</a></li>
+{% endblock %}
+</div>
+<div>
+{% block footer %}
+    FOOTER
+{% endblock %}
+</div>
+</body>
+</html>
