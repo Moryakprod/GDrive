@@ -1,7 +1,5 @@
 from django.contrib.auth import get_user_model
 from django.db import models
-
-from django.template.defaultfilters import slugify
 from django.utils.translation import gettext_lazy as _
 
 
@@ -38,5 +36,6 @@ class VideoProcessing(models.Model):
     @property
     def youtube_link(self):
         return 'youtu.be/aaaa'
+
 
 

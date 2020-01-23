@@ -3,11 +3,11 @@
 <ul>
 {% for process in object_list %}
     <li>
-    {{ process.source_type }} - {{ process.date }}
+    {{ process.video.source_type }} - {{ process.processing.date }}
     <ul>
-        {% for video_processing in process.videos.all %}
+        {% for processing in object_list %}
         <li>
-            {{ video_processing.status }} - {{ video_processing.video.name }} {{ video_processing.error_message_video }} <a href="{{ video.youtube_link }}">{{ video.youtube_link }}</a>
+            {{ processing.status }} - {{ processing.video.name }} {{ processing.error_message_video }} <a href="{{ video.youtube_link }}">{{ video.youtube_link }}</a>
         </li>
         {% endfor %}
 
