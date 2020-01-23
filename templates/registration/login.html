@@ -5,10 +5,10 @@
 <form method="post">
   {% csrf_token %}
   {{ form.as_p }}
-  <button type="submit">Login</button>
+  <button>login</button>
 </form>
 
-<a href="{% url 'social:begin' 'google-oauth2' %}" > Log in via google</a>
+<a href="{% url 'social:begin' 'google-oauth2' %}" class="btn btn-success" > Log in via google</a>
 
 {% endblock %}
 

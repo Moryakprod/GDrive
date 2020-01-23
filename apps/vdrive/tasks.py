@@ -9,13 +9,13 @@ import tempfile
 from celery import shared_task
 from googleapiclient.errors import HttpError
 from googleapiclient.http import MediaIoBaseDownload, MediaFileUpload
-from apps.vdrive.models import VideoProcessing, Processing
+from apps.vdrive.models import VideoProcessing
 from settings.base import RETRIABLE_STATUS_CODES, RETRIABLE_EXCEPTIONS, MAX_RETRIES
 
 logger = logging.getLogger(__name__)
 
 
-def upload_to_youtube(youtube, file_descriptor):
+def upload_to_youtube(file_descriptor, youtube):
     body = {"snippet": {"title": "title", "description": "desc", "categoryId": "22"},
             "status": {"privacyStatus": "unlisted"}
             }
@@ -56,42 +56,46 @@ def upload_to_youtube(youtube, file_descriptor):
 
             max_sleep = 2 ** retry
             sleep_seconds = random.random() * max_sleep
-            logger.debug("Sleeping %f seconds and then retrying...", sleep_seconds)
+            logger.debug("Sleeping %s seconds and then retrying...", sleep_seconds)
             time.sleep(sleep_seconds)
 
 
-def download(video_processing_pk):
-    video_processing = VideoProcessing.objects.get(pk=video_processing_pk)
-    video = video_processing.video
-    user = video.user
-    creds = get_google_credentials(user)
-    video_id = video.source_id
-    print(f'Downloading {video_id} for {user}')
-    if video_id is None:
-        video_processing.status = VideoProcessing.Status.ERROR
-        msg = 'No Id provided'
-        video_processing.error_message_video = msg
-        video_processing.save()
-        raise ValueError(msg)
+def download_from_drive(user, video_id, file_descriptor):
+    credentials = get_google_credentials(user)
+    drive = build('drive', 'v3', credentials=credentials)
+    request = drive.files().get_media(fileId=video_id)
+    downloader = MediaIoBaseDownload(file_descriptor, request)
+    return downloader
 
 
 @shared_task
-def process(download, video_processing):
+def process(video_processing_pk):
+    video_processing = VideoProcessing.objects.get(pk=video_processing_pk)
+    video = video_processing.video
+    user = video.user
+    video_id = video.source_id
+
     with tempfile.NamedTemporaryFile(mode='w+b', delete=True) as file_descriptor:
+        print(f'Downloading {video_id} for {user}')
+        if video_id is None:
+            video_processing.status = VideoProcessing.Status.ERROR
+            msg = 'No Id provided'
+            video_processing.error_message_video = msg
+            video_processing.save()
+            raise ValueError(msg)
 
         video_processing.status = VideoProcessing.Status.DOWNLOAD
         video_processing.save()
+
         try:
-            drive = build('drive', 'v3', credentials=download.creds)
-            request = drive.files().get_media(fileId=download.video_id)
-            downloader = MediaIoBaseDownload(file_descriptor, request)
+            print(user, video_id, file_descriptor)
+            downloader = download_from_drive(user, video_id, file_descriptor)
             done = False
             while done is False:
-                status, done = downloader.next_chunk(1024)
+                status, done = downloader.next_chunk()
                 video_processing.progress = int(status.progress() * 100)
                 video_processing.save()
-                return "Download %d%%." % int(status.progress() * 100), download.video_id
-
+                logger.info("Download %d, %s." % (video_processing.progress, video_id))
             video_processing.status = VideoProcessing.Status.UPLOAD
             video_processing.save()
         except Exception as e:
@@ -100,9 +104,10 @@ def process(download, video_processing):
             raise
 
         try:
-            youtube = build("youtube", "v3", credentials=download.creds)
-            youtube_id = upload_to_youtube(youtube, file_descriptor)
-            video_processing.youtube_id = youtube_id
+            credentials = get_google_credentials(user)
+            youtube = build("youtube", "v3", credentials=credentials)
+            youtube_id = upload_to_youtube(file_descriptor, youtube)
+            video_processing.video.youtube_id = youtube_id
             video_processing.save()
         except HttpError as er:
             video_processing.status = VideoProcessing.Status.ERROR

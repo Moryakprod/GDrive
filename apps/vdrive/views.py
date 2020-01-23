@@ -1,13 +1,16 @@
 import logging
 
-from .utils import get_google_credentials
-from googleapiclient.discovery import build
 from django import forms
+from django.db.transaction import on_commit
 from django.urls import reverse_lazy
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import ListView, FormView
-from apps.vdrive.tasks import download
+
+from googleapiclient.discovery import build
+
+from apps.vdrive.tasks import process
 from apps.vdrive.models import VideoProcessing, Processing, Video
+from .utils import get_google_credentials
 
 
 logger = logging.getLogger(__name__)
@@ -29,6 +32,7 @@ class GDriveListView(LoginRequiredMixin, FormView):
     success_url = reverse_lazy('vdrive:imports_list')
 
     def get_form_kwargs(self):
+        GDriveListView.get_files_list(self)
         kwargs = super().get_form_kwargs()
         kwargs['user'] = self.request.user
         return kwargs
@@ -51,10 +55,11 @@ class GDriveListView(LoginRequiredMixin, FormView):
         for video_id in videos:
             video_processing = VideoProcessing.objects.create(video_id=video_id, processing=processing)
             video_processing.save()
-            download.delay(video_processing.pk)
+            on_commit(lambda: process.delay(video_processing.pk))
         return super().form_valid(form)
 
 
 class UserListView(LoginRequiredMixin, ListView):
-    model = Video
+    model = VideoProcessing
     template_name = 'vdrive/imports_list.html'
+
