@@ -2,6 +2,7 @@ import logging
 from datetime import time
 import random
 import time
+import urllib.request
 
 from .utils import get_google_credentials
 from googleapiclient.discovery import build
@@ -9,8 +10,9 @@ import tempfile
 from celery import shared_task
 from googleapiclient.errors import HttpError
 from googleapiclient.http import MediaIoBaseDownload, MediaFileUpload
-from apps.vdrive.models import VideoProcessing
+from apps.vdrive.models import VideoProcessing, Video
 from settings.base import RETRIABLE_STATUS_CODES, RETRIABLE_EXCEPTIONS, MAX_RETRIES
+
 
 logger = logging.getLogger(__name__)
 
@@ -60,12 +62,42 @@ def upload_to_youtube(file_descriptor, youtube):
             time.sleep(sleep_seconds)
 
 
-def download_from_drive(user, video_id, file_descriptor):
+def download_from_drive(user, video_id, file_descriptor, video_processing):
     credentials = get_google_credentials(user)
     drive = build('drive', 'v3', credentials=credentials)
     request = drive.files().get_media(fileId=video_id)
     downloader = MediaIoBaseDownload(file_descriptor, request)
-    return downloader
+    done = False
+    while done is False:
+        status, done = downloader.next_chunk()
+        video_processing.progress = int(status.progress() * 100)
+        video_processing.save()
+        logger.info("Download %d, %s." % (video_processing.progress, video_id))
+
+
+def download_from_gphotos(user, video_id, file_descriptor, video_processing):
+    credentials = get_google_credentials(user)
+    photos = build('photoslibrary', 'v1', credentials=credentials)
+    response = photos.mediaItems().get(mediaItemId=video_id).execute()
+    print(response)
+    base_url = response.get('baseUrl')
+    if not base_url:
+        raise ValueError('No video found')
+
+    download_url = base_url + '=dv'
+
+    with urllib.request.urlopen(download_url) as url_downloader:
+        length = url_downloader.getheader('content-length')
+        chunk_size = max(4096, int(length)//100)
+        if not length:
+            file_descriptor.write(url_downloader.read())
+        else:
+            while True:
+                chunk = url_downloader.read(chunk_size)
+                print(chunk)
+                if not chunk:
+                    break
+                file_descriptor.write(chunk)
 
 
 @shared_task
@@ -74,6 +106,7 @@ def process(video_processing_pk):
     video = video_processing.video
     user = video.user
     video_id = video.source_id
+
 
     with tempfile.NamedTemporaryFile(mode='w+b', delete=True) as file_descriptor:
         print(f'Downloading {video_id} for {user}')
@@ -89,20 +122,18 @@ def process(video_processing_pk):
 
         try:
             print(user, video_id, file_descriptor)
-            downloader = download_from_drive(user, video_id, file_descriptor)
-            done = False
-            while done is False:
-                status, done = downloader.next_chunk()
-                video_processing.progress = int(status.progress() * 100)
-                video_processing.save()
-                logger.info("Download %d, %s." % (video_processing.progress, video_id))
-            video_processing.status = VideoProcessing.Status.UPLOAD
-            video_processing.save()
+            if video_processing.video.source_type == Video.Type.GPHOTOS:
+                download_from_gphotos(user, video_id, file_descriptor, video_processing)
+            else:
+                download_from_drive(user, video_id, file_descriptor, video_processing)
+
         except Exception as e:
             video_processing.status = VideoProcessing.Status.ERROR
             video_processing.error_message_video = f'Error: {e}'
+            video_processing.save()
             raise
-
+        video_processing.status = VideoProcessing.Status.UPLOAD
+        video_processing.save()
         try:
             credentials = get_google_credentials(user)
             youtube = build("youtube", "v3", credentials=credentials)
@@ -112,6 +143,7 @@ def process(video_processing_pk):
         except HttpError as er:
             video_processing.status = VideoProcessing.Status.ERROR
             video_processing.error_message_video = f'An HTTP error occurred: {er.resp.status, er.content}'
+            video_processing.save()
             raise
 
         video_processing.status = VideoProcessing.Status.SUCCESS
