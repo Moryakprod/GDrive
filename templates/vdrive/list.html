@@ -1,23 +1,14 @@
 {% extends "base.html" %}
 {% block content %}
-
-{#    <ul>#}
-{#    {% for field in form.visible_fields %}#}
-{#        <div class="fieldWrapper">#}
-{#        {{ field.errors }}#}
-{#        {{ field.label_tag }} {{ field }}#}
-{#        </div>#}
-{#    {% endfor %}#}
-{#    <button type="submit" class="btn btn-success">Upload</button>#}
-{#    </ul>#}
 <form method="post">
  {% csrf_token %}
 
     {% with videos=videos %}
         {% include "partials/video_list.html" %}
     {% endwith %}
-
-<button type="submit" class="btn btn-success">Upload</button>
+<div style="text-align: center">
+    <button type="submit" class="btn btn-success">Upload</button>
+</div>
 </form>
 {% endblock %}
 {% block extra_js %}

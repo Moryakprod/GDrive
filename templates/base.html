@@ -21,6 +21,9 @@
       <li class="nav-item">
         <a class="nav-link" href="http://127.0.0.1:8000/imports_list/">Imports list</a>
       </li>
+        <li>
+            <a class="nav-link" href="http://127.0.0.1:8000/delete_list/">Delete list</a>
+        </li>
 {#      <li class="nav-item dropdown">#}
 {#        <a class="nav-link dropdown-toggle" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">#}
 {#          Choice#}
@@ -45,10 +48,9 @@
 
 <body>
     <div class="container">
-                {% block content %}
-                    <li><a href="{% url 'file' %}">files</a></li>
-                {% endblock %}
-
+        {% block content %}
+            <li><a href="{% url 'file' %}">files</a></li>
+        {% endblock %}
     </div>
     <div class="container">
         <div class="row justify-content-center">
