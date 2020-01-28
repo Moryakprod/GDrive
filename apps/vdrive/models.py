@@ -8,14 +8,23 @@ class Video(models.Model):
         GDRIVE = 'Google Drive', _('Gdrive type')
         GPHOTOS = 'Google Photos', _('Gphotos type')
 
+    class Status(models.TextChoices):
+        ONDRIVE = 'waiting on drive', _('Waiting to upload')
+        DELETED = 'deleted', _('Successfully deleted')
+
+    status = models.CharField(max_length=50, choices=Status.choices, default=Status.ONDRIVE)
     source_id = models.CharField(verbose_name=_(" id of video in the source"), max_length=250)
     name = models.CharField(verbose_name=_("name of the video"), max_length=250)
     source_type = models.CharField(choices=Type.choices, verbose_name=_("source of the file"), max_length=250)
     user = models.ForeignKey(get_user_model(), related_name='videos', on_delete=models.CASCADE)
     youtube_id = models.CharField(verbose_name=_("id of youtube uploaded video"), max_length=250, blank=True)
+    thumbnail = models.URLField(verbose_name=_("thumbnail of the video"), max_length=1000)
+    size = models.CharField(verbose_name=_("File size"), max_length=250)
 
 
 class Processing(models.Model):
+    class Meta:
+        ordering = ['-date']
     date = models.DateTimeField(verbose_name=_("creation date"), auto_now_add=True, null=True)
 
 
@@ -28,14 +37,11 @@ class VideoProcessing(models.Model):
         ERROR = 'errors', _('Error message')
         SUCCESS = 'success', _('Successfully Uploaded')
 
-    processing = models.ForeignKey('Processing', on_delete=models.CASCADE, related_name='videos')
+    processing = models.ForeignKey('Processing', on_delete=models.CASCADE,  related_name='videos')
     video = models.ForeignKey('Video', on_delete=models.CASCADE, related_name='processings')
-    status = models.CharField(max_length=50, choices=Status.choices, default=Status.WAITING,)
+    status = models.CharField(max_length=50, choices=Status.choices, default=Status.WAITING)
     error_message_video = models.TextField(blank=True)
 
     @property
     def youtube_link(self):
         return 'youtu.be/aaaa'
-
-
-
