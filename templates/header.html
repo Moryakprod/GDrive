@@ -1,4 +1,4 @@
 {{ request.user|default:"Anon" }}
 {% if request.user.is_authenticated %}
- <a href="{% url 'logout' %}" class="col-auto"> Log out </a>
+ <a href="{% url 'logout' %}" class="btn btn-outline-success my-2 my-sm-0"> Log out </a>
 {% endif %}

@@ -186,7 +186,9 @@ SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = '517394967633-lalgtan590acmsevftltm3op0r78ap8r.a
 SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = 'lufONhl4DT8tasoOdppxNsUG'
 SOCIAL_AUTH_GOOGLE_OAUTH2_AUTH_EXTRA_ARGUMENTS = {'access_type': 'offline'}
 SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE = ['https://www.googleapis.com/auth/drive',
-                                   'https://www.googleapis.com/auth/youtube.upload']
+                                   'https://www.googleapis.com/auth/youtube.upload',
+                                   'https://www.googleapis.com/auth/photoslibrary',
+                                   'https://www.googleapis.com/auth/photoslibrary.sharing']
 
 MAX_RETRIES = 10
 
