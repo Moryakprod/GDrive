@@ -1,4 +1,7 @@
+import json
 import logging
+
+import requests
 from googleapiclient.discovery import build
 import urllib.request
 from hurry.filesize import size as sizer
@@ -31,14 +34,26 @@ def scan_gdrive(user):
 
 
 def scan_gphotos(user):
-    library = build('photoslibrary', 'v1', credentials=get_google_credentials(user))
-    results = library.mediaItems().search().execute()
+    creds = get_google_credentials(user)
+    url = 'https://photoslibrary.googleapis.com/v1/mediaItems:search'
+    payload = {
+        'filters': {"mediaTypeFilter": {"mediaTypes": ['VIDEO',] }}
+    }
+    headers = {
+        'content-type': 'application/json',
+        'Authorization': f'Bearer {creds.token}'
+    }
+
+    response = requests.post(url, data=json.dumps(payload), headers=headers)
+    if response.status_code != 200:
+        raise ValueError('Failed to retrieve data from gphotos')
+
+    results = response.json()
+
     logger.info(f'Found gphotos files {results}')
     items = results.get('mediaItems', [])
+    print(items)
     for item in items:
-
-        if not item['mimeType'].startswith('video'):
-            continue
         base_url = item.get('baseUrl')
 
         if not base_url:

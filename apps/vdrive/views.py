@@ -13,6 +13,7 @@ from googleapiclient.discovery import build
 
 from apps.vdrive.tasks import process, scan_files
 from apps.vdrive.models import VideoProcessing, Processing, Video, VideoScan
+from .scan import scan_gphotos
 from .utils import get_google_credentials
 
 
@@ -45,12 +46,14 @@ class StartScanView(View):
         self.start_scan()
         return HttpResponse('Ok')
 
+
 class GDriveListView(LoginRequiredMixin, FormView):
     template_name = 'vdrive/list.html'
     form_class = GDriveListForm
     success_url = reverse_lazy('vdrive:imports_list')
 
     def get_form_kwargs(self):
+        scan_gphotos(self.request.user)
         if self.request.user.video_scans.exists():
             logger.debug(f'Active scan already exists for user {self.request.user}')
         else:
