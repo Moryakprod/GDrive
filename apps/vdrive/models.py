@@ -4,6 +4,9 @@ from django.utils.translation import gettext_lazy as _
 
 
 class Video(models.Model):
+    class Meta:
+        ordering = ['-id']
+
     class Type(models.TextChoices):
         GDRIVE = 'Google Drive', _('Gdrive type')
         GPHOTOS = 'Google Photos', _('Gphotos type')
@@ -19,7 +22,7 @@ class Video(models.Model):
     user = models.ForeignKey(get_user_model(), related_name='videos', on_delete=models.CASCADE)
     youtube_id = models.CharField(verbose_name=_("id of youtube uploaded video"), max_length=250, blank=True)
     thumbnail = models.URLField(verbose_name=_("thumbnail of the video"), max_length=1000)
-    size = models.IntegerField(verbose_name=_("File size"), null=True)
+    size = models.CharField(verbose_name=_("File size"), max_length=250)
 
 
 class Processing(models.Model):
@@ -46,5 +49,14 @@ class VideoProcessing(models.Model):
         return 'youtu.be/aaaa'
 
 
+class VideoScan(models.Model):
+    class Status(models.TextChoices):
+        WAITING = 'waiting', _('Waiting to scan')
+        IN_PROGRESS = 'in_progress', _('Scanning')
+        SUCCESS = 'success', _('Success')
+        ERROR = 'error', _('Error')
 
-
+    user = models.ForeignKey(get_user_model(), related_name='video_scans', on_delete=models.CASCADE)
+    date = models.DateTimeField(verbose_name=_("Date"), auto_now_add=True)
+    status = models.CharField(max_length=50, choices=Status.choices, default=Status.WAITING)
+    error_message = models.TextField(_('Error'), blank=True)

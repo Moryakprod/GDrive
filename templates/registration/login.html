@@ -2,14 +2,11 @@
 
 
 {% block content %}
-<form method="post">
-  {% csrf_token %}
-  {{ form.as_p }}
-  <button>login</button>
-</form>
-
-<a href="{% url 'social:begin' 'google-oauth2' %}" class="btn btn-success" > Log in via google</a>
-
+    <div class="login-container">
+        <div class="row">
+        <a href="{% url 'social:begin' 'google-oauth2' %}" class="btn btn-primary" > Log in via google</a>
+        </div>
+    </div>
 {% endblock %}
 
 

@@ -2,33 +2,39 @@ import logging
 from datetime import time
 import random
 import time
+import tempfile
+
+from celery import shared_task
 import urllib.request
 
-from .utils import get_google_credentials
+from django.contrib.auth import get_user_model
 from googleapiclient.discovery import build
-import tempfile
-from celery import shared_task
 from googleapiclient.errors import HttpError
 from googleapiclient.http import MediaIoBaseDownload, MediaFileUpload
-from apps.vdrive.models import VideoProcessing, Video
+
+from .scan import scan_gphotos, scan_gdrive
+from .utils import get_google_credentials
+from apps.vdrive.models import VideoProcessing, Video, VideoScan
 from settings.base import RETRIABLE_STATUS_CODES, RETRIABLE_EXCEPTIONS, MAX_RETRIES
 
 
 logger = logging.getLogger(__name__)
+User = get_user_model()
 
-
-def upload_to_youtube(file_descriptor, youtube):
+def upload_to_youtube(file_descriptor, user):
     body = {"snippet": {"title": "title", "description": "desc", "categoryId": "22"},
             "status": {"privacyStatus": "unlisted"}
             }
 
     logger.debug(file_descriptor.name)
-
+    credentials = get_google_credentials(user)
+    youtube = build("youtube", "v3", credentials=credentials)
     insert_request = youtube.videos().insert(
-        part=",".join(body.keys()),
-        body=body,
-        media_body=MediaFileUpload(file_descriptor.name, chunksize=-1, resumable=True)
-    )
+                                            part=",".join(body.keys()),
+                                            body=body,
+                                            media_body=MediaFileUpload(file_descriptor.name,
+                                                                       chunksize=-1,
+                                                                       resumable=True))
 
     response = None
     error = None
@@ -58,7 +64,7 @@ def upload_to_youtube(file_descriptor, youtube):
 
             max_sleep = 2 ** retry
             sleep_seconds = random.random() * max_sleep
-            logger.debug("Sleeping %s seconds and then retrying...", sleep_seconds)
+            logger.debug("Sleeping %f seconds and then retrying...", sleep_seconds)
             time.sleep(sleep_seconds)
 
 
@@ -79,7 +85,6 @@ def download_from_gphotos(user, video_id, file_descriptor, video_processing):
     credentials = get_google_credentials(user)
     photos = build('photoslibrary', 'v1', credentials=credentials)
     response = photos.mediaItems().get(mediaItemId=video_id).execute()
-    print(response)
     base_url = response.get('baseUrl')
     if not base_url:
         raise ValueError('No video found')
@@ -94,7 +99,6 @@ def download_from_gphotos(user, video_id, file_descriptor, video_processing):
         else:
             while True:
                 chunk = url_downloader.read(chunk_size)
-                print(chunk)
                 if not chunk:
                     break
                 file_descriptor.write(chunk)
@@ -134,11 +138,12 @@ def process(video_processing_pk):
             raise
         video_processing.status = VideoProcessing.Status.UPLOAD
         video_processing.save()
+
         try:
-            credentials = get_google_credentials(user)
-            youtube = build("youtube", "v3", credentials=credentials)
-            youtube_id = upload_to_youtube(file_descriptor, youtube)
+            youtube_id = upload_to_youtube(file_descriptor, user)
             video_processing.video.youtube_id = youtube_id
+            video_processing.save()
+            video_processing.status = VideoProcessing.Status.SUCCESS
             video_processing.save()
         except HttpError as er:
             video_processing.status = VideoProcessing.Status.ERROR
@@ -146,5 +151,21 @@ def process(video_processing_pk):
             video_processing.save()
             raise
 
-        video_processing.status = VideoProcessing.Status.SUCCESS
-        video_processing.save()
+
+
+@shared_task
+def scan_files(video_scan_id):
+    video_scan = VideoScan.objects.get(id=video_scan_id)
+    video_scan.status = VideoScan.Status.IN_PROGRESS
+    video_scan.save()
+    user = video_scan.user
+    try:
+        scan_gphotos(user)
+        scan_gdrive(user)
+    except Exception as e:
+        video_scan.status = VideoScan.Status.ERROR
+        video_scan.error_message = f'Error in scan: {e}'
+        video_scan.save()
+
+    video_scan.status = VideoScan.Status.SUCCESS
+    video_scan.save()

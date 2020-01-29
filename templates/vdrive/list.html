@@ -1,16 +1,9 @@
 {% extends "base.html" %}
 {% block content %}
 
-{#    <ul>#}
-{#    {% for field in form.visible_fields %}#}
-{#        <div class="fieldWrapper">#}
-{#        {{ field.errors }}#}
-{#        {{ field.label_tag }} {{ field }}#}
-{#        </div>#}
-{#    {% endfor %}#}
-{#    <button type="submit" class="btn btn-success">Upload</button>#}
-{#    </ul>#}
 <form method="post">
+
+<button type="submit" class="btn btn-success">Upload</button>
  {% csrf_token %}
 
     {% with videos=videos %}
@@ -39,5 +32,5 @@
         );
 
     </script>
-
 {% endblock %}
+

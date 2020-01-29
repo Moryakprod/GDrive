@@ -14,12 +14,13 @@
             <li class="list-group-item">
                 <label class="badge
                     {% if vp.status == 'success' %} badge-primary
+
                     {% elif vp.status == 'error' %}
                     badge-danger
                     {% else %}
                     badge-secondary
                     {% endif %}">{{ vp.status }}</label>
-                {{ vp.video.name }}
+                    {{ vp.video.name }}
                 {% if  vp.error_message_video %}
                 <label class="badge badge-danger">
                     {{ vp.error_message_video }}
