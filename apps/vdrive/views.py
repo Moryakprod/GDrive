@@ -34,8 +34,8 @@ class GDriveListView(LoginRequiredMixin, FormView):
     success_url = reverse_lazy('vdrive:imports_list')
 
     def get_form_kwargs(self):
-        #self.get_files_list()
-        #self.get_files_list_gphotos()
+        self.get_files_list()
+        self.get_files_list_gphotos()
         kwargs = super().get_form_kwargs()
         kwargs['videos'] = self.get_videos()
         return kwargs
@@ -49,7 +49,6 @@ class GDriveListView(LoginRequiredMixin, FormView):
         context = super(GDriveListView, self).get_context_data(**kwargs)
         context['videos'] = self.get_videos()
         return context
-
 
     def get_files_list(self):
         drive = build('drive', 'v3', credentials=get_google_credentials(self.request.user))
@@ -76,11 +75,12 @@ class GDriveListView(LoginRequiredMixin, FormView):
         logger.info(f'Found gphotos files {results}')
         items = results.get('mediaItems', [])
         for item in items:
-            #print(item['mimeType'], item['filename'])
+            print(item['mimeType'], item['filename'])
+
             if not item['mimeType'].startswith('video'):
                 continue
-
             base_url = item.get('baseUrl')
+
             if not base_url:
                 logger.error(f'No base url for video {item}')
                 continue
@@ -114,10 +114,8 @@ class GDriveListView(LoginRequiredMixin, FormView):
         for video_id in videos:
             video_processing = VideoProcessing.objects.create(video_id=video_id,
                                                               processing=processing)
-
             on_commit(lambda: process.delay(video_processing.pk))
             video_processing.save()
-
         return super().form_valid(form)
 
 
@@ -143,8 +141,6 @@ class DeleteListView(LoginRequiredMixin, FormView):
     success_url = reverse_lazy('vdrive:list')
 
     def get_form_kwargs(self):
-        #self.get_files_list()
-        #self.get_files_list_gphotos()
         kwargs = super().get_form_kwargs()
         kwargs['user'] = self.request.user
         return kwargs

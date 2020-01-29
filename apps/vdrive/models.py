@@ -29,7 +29,6 @@ class Processing(models.Model):
 
 
 class VideoProcessing(models.Model):
-
     class Status(models.TextChoices):
         WAITING = 'waiting', _('Waiting to upload')
         DOWNLOAD = 'download', _('Download')
@@ -45,3 +44,4 @@ class VideoProcessing(models.Model):
     @property
     def youtube_link(self):
         return 'youtu.be/aaaa'
+

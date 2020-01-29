@@ -6,10 +6,11 @@
             <div class="card-body">
                 <p class="card-text"><label for="id_{{ video.id }}">
                     {{ video.name }}  <br> <span class="badge badge-success">{{ video.size }}</span>
-                                          <span class="badge badge-success">{{ video.source_type}}</span>
+                                           <span class="badge badge-success">{{ video.source_type}}</span>
                 </label> <input type="checkbox" style="display: none" name="{{ video.id }}" id="id_{{ video.id }}"></p>
+
             </div>
         </div>
      </div>
  {% endfor %}
- </div>
+</div>

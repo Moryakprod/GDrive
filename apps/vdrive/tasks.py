@@ -3,7 +3,7 @@ from datetime import time
 import random
 import time
 import tempfile
-from .utils import get_google_credentials
+
 from celery import shared_task
 import urllib.request
 
@@ -11,8 +11,10 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from googleapiclient.http import MediaIoBaseDownload, MediaFileUpload
 
+from .utils import get_google_credentials
 from apps.vdrive.models import VideoProcessing, Video
 from settings.base import RETRIABLE_STATUS_CODES, RETRIABLE_EXCEPTIONS, MAX_RETRIES
+
 
 logger = logging.getLogger(__name__)
 
@@ -108,6 +110,7 @@ def process(video_processing_pk):
     user = video.user
     video_id = video.source_id
 
+
     with tempfile.NamedTemporaryFile(mode='w+b', delete=True) as file_descriptor:
         print(f'Downloading {video_id} for {user}')
         if video_id is None:
@@ -125,33 +128,28 @@ def process(video_processing_pk):
             print(user, video_id, file_descriptor)
             if video_processing.video.source_type == Video.Type.GPHOTOS:
                 download_from_gphotos(user, video_id, file_descriptor, video_processing)
-                video_processing.status = VideoProcessing.Status.SUCCESS
-                video_processing.save()
-                # video_processing.status = VideoProcessing.Status.UPLOAD
-                # video_processing.save()
             else:
                 download_from_drive(user, video_id, file_descriptor, video_processing)
-                video_processing.status = VideoProcessing.Status.SUCCESS
-                video_processing.save()
-                # video_processing.status = VideoProcessing.Status.UPLOAD
-                # video_processing.save()
 
         except Exception as e:
             video_processing.status = VideoProcessing.Status.ERROR
             video_processing.error_message_video = f'Error: {e}'
             video_processing.save()
             raise
+        video_processing.status = VideoProcessing.Status.UPLOAD
+        video_processing.save()
 
         try:
             credentials = get_google_credentials(user)
-            #youtube = build("youtube", "v3", credentials=credentials)
-            #youtube_id = upload_to_youtube(file_descriptor, youtube)
-            #video_processing.video.youtube_id = youtube_id
-            #video_processing.save()
-            # video_processing.status = VideoProcessing.Status.SUCCESS
-            # video_processing.save()
+            youtube = build("youtube", "v3", credentials=credentials)
+            youtube_id = upload_to_youtube(file_descriptor, youtube)
+            video_processing.video.youtube_id = youtube_id
+            video_processing.save()
+            video_processing.status = VideoProcessing.Status.SUCCESS
+            video_processing.save()
         except HttpError as er:
             video_processing.status = VideoProcessing.Status.ERROR
             video_processing.error_message_video = f'An HTTP error occurred: {er.resp.status, er.content}'
             video_processing.save()
             raise
+

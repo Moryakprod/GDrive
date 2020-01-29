@@ -13,8 +13,8 @@
         {% for vp in process.videos.all %}
             <li class="list-group-item">
                 <label class="badge
-                    {% if vp.status == 'success' %}
-                    badge-primary
+                    {% if vp.status == 'success' %} badge-primary
+
                     {% elif vp.status == 'error' %}
                     badge-danger
                     {% else %}
@@ -39,6 +39,4 @@
     <script type="text/javascript">
     console.log(1);
     </script>
-
-
 {% endblock %}
