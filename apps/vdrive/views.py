@@ -53,7 +53,6 @@ class GDriveListView(LoginRequiredMixin, FormView):
     success_url = reverse_lazy('vdrive:imports_list')
 
     def get_form_kwargs(self):
-        scan_gphotos(self.request.user)
         if self.request.user.video_scans.exists():
             logger.debug(f'Active scan already exists for user {self.request.user}')
         else:

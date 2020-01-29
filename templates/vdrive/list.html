@@ -2,6 +2,8 @@
 {% block content %}
 
 <form method="post">
+
+<button type="submit" class="btn btn-success">Upload</button>
  {% csrf_token %}
 
     {% with videos=videos %}

@@ -85,7 +85,6 @@ def download_from_gphotos(user, video_id, file_descriptor, video_processing):
     credentials = get_google_credentials(user)
     photos = build('photoslibrary', 'v1', credentials=credentials)
     response = photos.mediaItems().get(mediaItemId=video_id).execute()
-    print(response)
     base_url = response.get('baseUrl')
     if not base_url:
         raise ValueError('No video found')

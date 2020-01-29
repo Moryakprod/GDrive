@@ -4,6 +4,9 @@ from django.utils.translation import gettext_lazy as _
 
 
 class Video(models.Model):
+    class Meta:
+        ordering = ['-id']
+
     class Type(models.TextChoices):
         GDRIVE = 'Google Drive', _('Gdrive type')
         GPHOTOS = 'Google Photos', _('Gphotos type')

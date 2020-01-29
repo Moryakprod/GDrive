@@ -1,12 +1,13 @@
 import json
 import logging
+import datetime
 
 import requests
 from googleapiclient.discovery import build
 import urllib.request
 from hurry.filesize import size as sizer
 
-from apps.vdrive.models import VideoProcessing, Processing, Video
+from apps.vdrive.models import VideoProcessing, Processing, Video, VideoScan
 from .utils import get_google_credentials
 
 
@@ -33,12 +34,33 @@ def scan_gdrive(user):
     return files_data['files']
 
 
-def scan_gphotos(user):
+def get_gphotos(user):
     creds = get_google_credentials(user)
     url = 'https://photoslibrary.googleapis.com/v1/mediaItems:search'
     payload = {
-        'filters': {"mediaTypeFilter": {"mediaTypes": ['VIDEO',] }}
+        'filters': {"mediaTypeFilter": {"mediaTypes": ['VIDEO', ]}}
     }
+
+
+
+    last_successfull_scan = user.video_scans.filter(status=VideoScan.Status.SUCCESS).last()
+    if last_successfull_scan:
+        start = last_successfull_scan.date - datetime.timedelta(days=1)
+        end = datetime.datetime.now() + datetime.timedelta(days=1)
+        payload['filters']['dateFilter']['ranges'] = [
+            {
+                "startDate": {
+                        "year": start.year,
+                        "month": start.month,
+                        "day": start.day
+                },
+                "endDate": {
+                    "year": end.year,
+                    "month": end.month,
+                    "day": end.day
+                }
+            },
+        ]
     headers = {
         'content-type': 'application/json',
         'Authorization': f'Bearer {creds.token}'
@@ -49,11 +71,24 @@ def scan_gphotos(user):
         raise ValueError('Failed to retrieve data from gphotos')
 
     results = response.json()
+    for video in results.get('mediaItems', []):
+        yield video
 
-    logger.info(f'Found gphotos files {results}')
-    items = results.get('mediaItems', [])
-    print(items)
-    for item in items:
+    while results.get('nextPageToken', None):
+        payload['pageToken'] = results.get('nextPageToken')
+        response = requests.post(url, data=json.dumps(payload), headers=headers)
+        print(response)
+        print(response.json())
+        if response.status_code != 200:
+            raise ValueError('Failed to retrieve data from gphotos')
+
+        results = response.json()
+        for video in results.get('mediaItems', []):
+            yield video
+
+
+def scan_gphotos(user):
+    for item in get_gphotos(user):
         base_url = item.get('baseUrl')
 
         if not base_url:
@@ -78,4 +113,3 @@ def scan_gphotos(user):
                                         'name': item.get('filename', 'UNKNOWN'),
                                         'size': size,
                                     })
-    return items
