@@ -45,3 +45,15 @@ class VideoProcessing(models.Model):
     def youtube_link(self):
         return 'youtu.be/aaaa'
 
+
+class VideoScan(models.Model):
+    class Status(models.TextChoices):
+        WAITING = 'waiting', _('Waiting to scan')
+        IN_PROGRESS = 'in_progress', _('Scanning')
+        SUCCESS = 'success', _('Success')
+        ERROR = 'error', _('Error')
+
+    user = models.ForeignKey(get_user_model(), related_name='video_scans', on_delete=models.CASCADE)
+    date = models.DateTimeField(verbose_name=_("Date"), auto_now_add=True)
+    status = models.CharField(max_length=50, choices=Status.choices, default=Status.WAITING)
+    error_message = models.TextField(_('Error'), blank=True)

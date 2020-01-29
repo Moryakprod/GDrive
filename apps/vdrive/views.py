@@ -1,17 +1,18 @@
 import logging
-import urllib.request
-from hurry.filesize import size as sizer
+
 
 from django import forms
 from django.db.transaction import on_commit
+from django.http import HttpResponse
 from django.urls import reverse_lazy
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views import View
 from django.views.generic import ListView, FormView
 
 from googleapiclient.discovery import build
 
-from apps.vdrive.tasks import process
-from apps.vdrive.models import VideoProcessing, Processing, Video
+from apps.vdrive.tasks import process, scan_files
+from apps.vdrive.models import VideoProcessing, Processing, Video, VideoScan
 from .utils import get_google_credentials
 
 
@@ -28,14 +29,34 @@ class GDriveListForm(forms.Form):
             self.initial[field_id] = False
 
 
+class StartScanView(View):
+    def start_scan(self):
+        if self.request.user.video_scans.filter(status__in=['in_progress', 'waiting']).exists():
+            logger.debug(f'Active scan already exists for user {self.request.user}')
+        else:
+            video_scan = VideoScan.objects.create(user=self.request.user)
+            on_commit(lambda: scan_files.delay(video_scan.id))
+
+    def get(self, request):
+        self.start_scan()
+        return HttpResponse('Ok')
+
+    def post(self, request):
+        self.start_scan()
+        return HttpResponse('Ok')
+
 class GDriveListView(LoginRequiredMixin, FormView):
     template_name = 'vdrive/list.html'
     form_class = GDriveListForm
     success_url = reverse_lazy('vdrive:imports_list')
 
     def get_form_kwargs(self):
-        self.get_files_list()
-        self.get_files_list_gphotos()
+        if self.request.user.video_scans.exists():
+            logger.debug(f'Active scan already exists for user {self.request.user}')
+        else:
+            video_scan = VideoScan.objects.create(user=self.request.user)
+            on_commit(lambda: scan_files.delay(video_scan.id))
+
         kwargs = super().get_form_kwargs()
         kwargs['videos'] = self.get_videos()
         return kwargs
@@ -50,61 +71,6 @@ class GDriveListView(LoginRequiredMixin, FormView):
         context['videos'] = self.get_videos()
         return context
 
-    def get_files_list(self):
-        drive = build('drive', 'v3', credentials=get_google_credentials(self.request.user))
-        files_data = drive.files().list(q="mimeType contains 'video/'",
-                                        spaces='drive',
-                                        fields='files(id, name, size, thumbnailLink)'
-                                        ).execute()
-        logger.info(f'Found fies {files_data}')
-
-        for item in files_data["files"]:
-            video = Video.objects.get_or_create(source_type=Video.Type.GDRIVE,
-                                                source_id=item['id'],
-                                                user=self.request.user,
-                                                defaults={
-                                                    'name': item['name'],
-                                                    'size': sizer(int(item['size'])),
-                                                    'thumbnail': item['thumbnailLink'],
-                                                })
-        return files_data['files']
-
-    def get_files_list_gphotos(self):
-        library = build('photoslibrary', 'v1', credentials=get_google_credentials(self.request.user))
-        results = library.mediaItems().list().execute()
-        logger.info(f'Found gphotos files {results}')
-        items = results.get('mediaItems', [])
-        for item in items:
-            print(item['mimeType'], item['filename'])
-
-            if not item['mimeType'].startswith('video'):
-                continue
-            base_url = item.get('baseUrl')
-
-            if not base_url:
-                logger.error(f'No base url for video {item}')
-                continue
-
-            download_url = base_url + '=dv'
-            size = 0
-
-            try:
-                with urllib.request.urlopen(download_url) as url_downloader:
-                    size = sizer(int(url_downloader.getheader('content-length')))
-
-            except Exception:
-                logger.error(f'Error fetching size for video {item}')
-
-                Video.objects.get_or_create(source_type=Video.Type.GPHOTOS,
-                                            source_id=item['id'],
-                                            user=self.request.user,
-                                            size=size,
-                                            defaults={
-                                                'thumbnail': base_url + '=w300-h200',
-                                                'name': item.get('filename', 'UNKNOWN'),
-                                                'size': size,
-                                            })
-        return items
 
     def form_valid(self, form):
         data = list(form.data)
@@ -115,7 +81,7 @@ class GDriveListView(LoginRequiredMixin, FormView):
             video_processing = VideoProcessing.objects.create(video_id=video_id, processing=processing)
             video_processing.save()
             video_pks.append(video_processing.pk)
-        on_commit(lambda: [process(video_pk) for video_pk in video_pks])
+        on_commit(lambda: [process.delay(video_pk) for video_pk in video_pks])
         return super().form_valid(form)
 
 
