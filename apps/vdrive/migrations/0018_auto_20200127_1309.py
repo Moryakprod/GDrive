@@ -10,9 +10,4 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AlterField(
-            model_name='video',
-            name='size',
-            field=models.IntegerField(max_length=50, verbose_name='File size'),
-        ),
-    ]
+        ]

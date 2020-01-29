@@ -9,10 +9,4 @@ class Migration(migrations.Migration):
         ('vdrive', '0014_video_thumbnail'),
     ]
 
-    operations = [
-        migrations.AlterField(
-            model_name='video',
-            name='thumbnail',
-            field=models.URLField(max_length=250, verbose_name='thumbnail of the video'),
-        ),
-    ]
+

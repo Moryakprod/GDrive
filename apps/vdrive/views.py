@@ -125,9 +125,9 @@ class UserListView(LoginRequiredMixin, ListView):
 
 
 class DelListForm(forms.Form):
-    def __init__(self, *args, user=None,  **kwargs):
+    def __init__(self, *args, videos=None, **kwargs):
         super().__init__(*args, **kwargs)
-        for video in user.videos.filter(processings__status='success'):
+        for video in videos:
             field_name = video.name
             field_id = video.id
             self.fields[field_id] = forms.BooleanField(required=False,
@@ -142,7 +142,7 @@ class DeleteListView(LoginRequiredMixin, FormView):
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
-        kwargs['user'] = self.request.user
+        kwargs['videos'] = self.get_videos()
         return kwargs
 
     def get_videos(self):
