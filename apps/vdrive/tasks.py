@@ -120,9 +120,8 @@ def process(video_processing_pk):
             video_processing.save()
             raise ValueError(msg)
 
-
-        #video_processing.status = VideoProcessing.Status.DOWNLOAD
-        #video_processing.save()
+        video_processing.status = VideoProcessing.Status.DOWNLOAD
+        video_processing.save()
 
         try:
             print(user, video_id, file_descriptor)
@@ -142,8 +141,8 @@ def process(video_processing_pk):
         try:
             credentials = get_google_credentials(user)
             youtube = build("youtube", "v3", credentials=credentials)
-            youtube_id = upload_to_youtube(file_descriptor, youtube)
-            video_processing.video.youtube_id = youtube_id
+            #youtube_id = upload_to_youtube(file_descriptor, youtube)
+            #video_processing.video.youtube_id = youtube_id
             video_processing.save()
             video_processing.status = VideoProcessing.Status.SUCCESS
             video_processing.save()

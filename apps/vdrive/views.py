@@ -62,9 +62,9 @@ class GDriveListView(LoginRequiredMixin, FormView):
             video = Video.objects.get_or_create(source_type=Video.Type.GDRIVE,
                                                 source_id=item['id'],
                                                 user=self.request.user,
-                                                size=sizer(int(item['size'])),
                                                 defaults={
                                                     'name': item['name'],
+                                                    'size': sizer(int(item['size'])),
                                                     'thumbnail': item['thumbnailLink'],
                                                 })
         return files_data['files']
@@ -91,7 +91,6 @@ class GDriveListView(LoginRequiredMixin, FormView):
             try:
                 with urllib.request.urlopen(download_url) as url_downloader:
                     size = sizer(int(url_downloader.getheader('content-length')))
-                    print(sizer(int(size)))
 
             except Exception:
                 logger.error(f'Error fetching size for video {item}')
@@ -111,11 +110,12 @@ class GDriveListView(LoginRequiredMixin, FormView):
         data = list(form.data)
         videos = [field for field in data if field != 'csrfmiddlewaretoken']
         processing = Processing.objects.create()
+        video_pks = []
         for video_id in videos:
-            video_processing = VideoProcessing.objects.create(video_id=video_id,
-                                                              processing=processing)
-            on_commit(lambda: process.delay(video_processing.pk))
+            video_processing = VideoProcessing.objects.create(video_id=video_id, processing=processing)
             video_processing.save()
+            video_pks.append(video_processing.pk)
+        on_commit(lambda: [process(video_pk) for video_pk in video_pks])
         return super().form_valid(form)
 
 
@@ -158,16 +158,16 @@ class DeleteListView(LoginRequiredMixin, FormView):
         print(data)
         videos = [field for field in data if field != 'csrfmiddlewaretoken']
         for video_id in videos:
-            id = Video.objects.get(id=video_id)
-            id_source = id.source_id
+            video = Video.objects.get(id=video_id)
+            id_source = video.source_id
 
-            if id.source_type == Video.Type.GDRIVE:
+            if video.source_type == Video.Type.GDRIVE:
                 drive = build('drive', 'v3', credentials=get_google_credentials(self.request.user))
-                id = Video.objects.get(id=video_id)
+                video = Video.objects.get(id=video_id)
                 drive.files().delete(fileId=id_source).execute()
                 logger.info(f'Deleted file: {id}')
-                # id.status = Video.Status.DELETED
-                # id.save()
+                video.status = Video.Status.DELETED
+                video.save()
             else:
                 library = build('photoslibrary', 'v1', credentials=get_google_credentials(self.request.user))
                 request_body = {
@@ -176,7 +176,7 @@ class DeleteListView(LoginRequiredMixin, FormView):
                 results = library.batchRemoveMediaItems(body=request_body).execute()
                 logger.info(f'Deleted file: {results}')
 
-                # id.status = Video.Status.DELETED
-                # id.save()
+                # video.status = Video.Status.DELETED
+                # video.save()
 
         return super().form_valid(form)
