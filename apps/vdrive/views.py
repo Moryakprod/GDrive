@@ -11,9 +11,9 @@ from django.views.generic import ListView, FormView
 
 from googleapiclient.discovery import build
 
-from apps.vdrive.tasks import process, scan_files
+from apps.vdrive.tasks import process, scan_files, gdrive_del
 from apps.vdrive.models import VideoProcessing, Processing, Video, VideoScan
-from .scan import scan_gphotos
+from .scan import scan_gphotos, scan_gdrive
 from .utils import get_google_credentials
 
 
@@ -33,6 +33,7 @@ class GDriveListForm(forms.Form):
 class StartScanView(View):
     def start_scan(self):
         if self.request.user.video_scans.filter(status__in=['in_progress', 'waiting']).exists():
+            logger.debug(f'Active scan already exists for user {self.request.user}')
             logger.debug(f'Active scan already exists for user {self.request.user}')
         else:
             video_scan = VideoScan.objects.create(user=self.request.user)
@@ -114,7 +115,8 @@ class DeleteListView(LoginRequiredMixin, FormView):
         return kwargs
 
     def get_videos(self):
-        return self.request.user.videos.filter(processings__status=VideoProcessing.Status.SUCCESS)
+        return self.request.user.videos.filter(processings__status=VideoProcessing.Status.SUCCESS)\
+                                       .exclude(status=Video.Status.DELETED)
 
     def get_context_data(self, **kwargs):
         context = super(DeleteListView, self).get_context_data(**kwargs)
@@ -125,26 +127,23 @@ class DeleteListView(LoginRequiredMixin, FormView):
         data = list(form.data)
         print(data)
         videos = [field for field in data if field != 'csrfmiddlewaretoken']
+        print(videos)
+        video_pks = []
         for video_id in videos:
             video = Video.objects.get(id=video_id)
-            id_source = video.source_id
-
+            video_pk = video.source_id
             if video.source_type == Video.Type.GDRIVE:
-                drive = build('drive', 'v3', credentials=get_google_credentials(self.request.user))
-                video = Video.objects.get(id=video_id)
-                drive.files().delete(fileId=id_source).execute()
-                logger.info(f'Deleted file: {id}')
-                video.status = Video.Status.DELETED
-                video.save()
-            else:
-                library = build('photoslibrary', 'v1', credentials=get_google_credentials(self.request.user))
-                request_body = {
-                    "mediaItemIds": video_id
-                }
-                results = library.batchRemoveMediaItems(body=request_body).execute()
-                logger.info(f'Deleted file: {results}')
-
-                # video.status = Video.Status.DELETED
-                # video.save()
+                video_pks.append(video_pk)
+            print(video_pks)
+        on_commit(lambda: [gdrive_del.delay(video_pk) for video_pk in video_pks])
+            # else:
+            #     library = build('photoslibrary', 'v1', credentials=get_google_credentials(self.request.user))
+            #     request_body = {
+            #         "mediaItemIds": video_id
+            #     }
+            #     results = library.batchRemoveMediaItems(body=request_body).execute()
+            #     logger.info(f'Deleted file: {results}')
+            #     video.status = Video.Status.DELETED
+            #     video.save()
 
         return super().form_valid(form)

@@ -21,6 +21,7 @@ from settings.base import RETRIABLE_STATUS_CODES, RETRIABLE_EXCEPTIONS, MAX_RETR
 logger = logging.getLogger(__name__)
 User = get_user_model()
 
+
 def upload_to_youtube(file_descriptor, user):
     body = {"snippet": {"title": "title", "description": "desc", "categoryId": "22"},
             "status": {"privacyStatus": "unlisted"}
@@ -140,9 +141,9 @@ def process(video_processing_pk):
         video_processing.save()
 
         try:
-            youtube_id = upload_to_youtube(file_descriptor, user)
-            video_processing.video.youtube_id = youtube_id
-            video_processing.save()
+            # youtube_id = upload_to_youtube(file_descriptor, user)
+            # video_processing.video.youtube_id = youtube_id
+            # video_processing.save()
             video_processing.status = VideoProcessing.Status.SUCCESS
             video_processing.save()
         except HttpError as er:
@@ -150,6 +151,9 @@ def process(video_processing_pk):
             video_processing.error_message_video = f'An HTTP error occurred: {er.resp.status, er.content}'
             video_processing.save()
             raise
+
+
+
 
 
 
@@ -169,3 +173,13 @@ def scan_files(video_scan_id):
 
     video_scan.status = VideoScan.Status.SUCCESS
     video_scan.save()
+
+@shared_task
+def gdrive_del(id_source):
+    video = Video.objects.get(source_id=id_source)
+    user = video.user
+    drive = build('drive', 'v3', credentials=get_google_credentials(user))
+    drive.files().delete(fileId=id_source).execute()
+    logger.info(f'Deleted file: { video.name }')
+    video.status = Video.Status.DELETED
+    video.save()
