@@ -74,7 +74,6 @@ class GDriveListView(LoginRequiredMixin, FormView):
         context['videos'] = self.get_videos()
         return context
 
-
     def form_valid(self, form):
         data = list(form.data)
         videos = [field for field in data if field != 'csrfmiddlewaretoken']
@@ -134,7 +133,6 @@ class DeleteListView(LoginRequiredMixin, FormView):
             video_pk = video.source_id
             if video.source_type == Video.Type.GDRIVE:
                 video_pks.append(video_pk)
-            print(video_pks)
         on_commit(lambda: [gdrive_del.delay(video_pk) for video_pk in video_pks])
             # else:
             #     library = build('photoslibrary', 'v1', credentials=get_google_credentials(self.request.user))

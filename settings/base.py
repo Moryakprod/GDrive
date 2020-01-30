@@ -182,8 +182,8 @@ AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
 )
 
-SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = '517394967633-lalgtan590acmsevftltm3op0r78ap8r.apps.googleusercontent.com'
-SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = 'lufONhl4DT8tasoOdppxNsUG'
+SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = os.getenv('GOOGLE_OAUTH2_KEY')
+SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = os.getenv('GOOGLE_OAUTH2_SECRET')
 SOCIAL_AUTH_GOOGLE_OAUTH2_AUTH_EXTRA_ARGUMENTS = {'access_type': 'offline'}
 SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE = ['https://www.googleapis.com/auth/drive',
                                    'https://www.googleapis.com/auth/youtube.upload',
@@ -201,7 +201,7 @@ RETRIABLE_STATUS_CODES = [500, 502, 503, 504]
 YOUTUBE_API_SERVICE_NAME = "youtube"
 YOUTUBE_API_VERSION = "v3"
 
-CLIENT_ID = '517394967633-lalgtan590acmsevftltm3op0r78ap8r.apps.googleusercontent.com'
+CLIENT_ID = SOCIAL_AUTH_GOOGLE_OAUTH2_KEY
 
 TOKEN_URI = 'https://oauth2.googleapis.com/token'
 

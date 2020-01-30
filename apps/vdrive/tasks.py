@@ -112,7 +112,6 @@ def process(video_processing_pk):
     user = video.user
     video_id = video.source_id
 
-
     with tempfile.NamedTemporaryFile(mode='w+b', delete=True) as file_descriptor:
         print(f'Downloading {video_id} for {user}')
         if video_id is None:
@@ -151,10 +150,6 @@ def process(video_processing_pk):
             video_processing.error_message_video = f'An HTTP error occurred: {er.resp.status, er.content}'
             video_processing.save()
             raise
-
-
-
-
 
 
 @shared_task
