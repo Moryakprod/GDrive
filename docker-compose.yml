@@ -7,6 +7,7 @@ services:
       - ./docker_env.env
       - ./config/env_vars/dev_env.env
       - ./config/env_vars/db/dev_db.env
+      - ./config.env
     volumes:
       - .:/web
     depends_on:
@@ -40,6 +41,7 @@ services:
       - ./docker_env.env
       - ./config/env_vars/dev_env.env
       - ./config/env_vars/db/dev_db.env
+      - ./config.env
     depends_on:
       - redis
       - db
