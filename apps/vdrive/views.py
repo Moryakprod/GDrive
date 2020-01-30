@@ -73,7 +73,6 @@ class GDriveListView(LoginRequiredMixin, FormView):
         context['videos'] = self.get_videos()
         return context
 
-
     def form_valid(self, form):
         data = list(form.data)
         videos = [field for field in data if field != 'csrfmiddlewaretoken']

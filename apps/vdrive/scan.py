@@ -41,8 +41,6 @@ def get_gphotos(user):
         'filters': {"mediaTypeFilter": {"mediaTypes": ['VIDEO', ]}}
     }
 
-
-
     last_successfull_scan = user.video_scans.filter(status=VideoScan.Status.SUCCESS).last()
     if last_successfull_scan:
         start = last_successfull_scan.date - datetime.timedelta(days=1)
