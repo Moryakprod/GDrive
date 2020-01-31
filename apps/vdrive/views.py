@@ -134,14 +134,5 @@ class DeleteListView(LoginRequiredMixin, FormView):
             if video.source_type == Video.Type.GDRIVE:
                 video_pks.append(video_pk)
         on_commit(lambda: [gdrive_del.delay(video_pk) for video_pk in video_pks])
-            # else:
-            #     library = build('photoslibrary', 'v1', credentials=get_google_credentials(self.request.user))
-            #     request_body = {
-            #         "mediaItemIds": video_id
-            #     }
-            #     results = library.batchRemoveMediaItems(body=request_body).execute()
-            #     logger.info(f'Deleted file: {results}')
-            #     video.status = Video.Status.DELETED
-            #     video.save()
 
         return super().form_valid(form)

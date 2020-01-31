@@ -34,6 +34,7 @@ def scan_gdrive(user):
     return files_data['files']
 
 
+
 def get_gphotos(user):
     creds = get_google_credentials(user)
     url = 'https://photoslibrary.googleapis.com/v1/mediaItems:search'
