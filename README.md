@@ -31,7 +31,7 @@ $ cd project
 ```
 Run the docker container with the command
 ```
-$ docker-compose -f docker-compose.yml up
+$ docker-compose up
 ```
 
 ## How to run and use ##

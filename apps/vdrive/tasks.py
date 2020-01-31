@@ -22,8 +22,8 @@ logger = logging.getLogger(__name__)
 User = get_user_model()
 
 
-def upload_to_youtube(file_descriptor, user):
-    body = {"snippet": {"title": "title", "description": "desc", "categoryId": "22"},
+def upload_to_youtube(file_descriptor, user, video_name):
+    body = {"snippet": {"title": video_name, "description": "", "categoryId": "22"},
             "status": {"privacyStatus": "unlisted"}
             }
 
@@ -111,6 +111,7 @@ def process(video_processing_pk):
     video = video_processing.video
     user = video.user
     video_id = video.source_id
+    video_name = video.name
 
     with tempfile.NamedTemporaryFile(mode='w+b', delete=True) as file_descriptor:
         print(f'Downloading {video_id} for {user}')
@@ -140,7 +141,7 @@ def process(video_processing_pk):
         video_processing.save()
 
         try:
-            youtube_id = upload_to_youtube(file_descriptor, user)
+            youtube_id = upload_to_youtube(file_descriptor, user, video_name)
             video_processing.video.youtube_id = youtube_id
             video_processing.save()
             video_processing.status = VideoProcessing.Status.SUCCESS
