@@ -9,7 +9,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views import View
 from django.views.generic import ListView, FormView
 
-from googleapiclient.discovery import build
+
 
 from apps.vdrive.tasks import process, scan_files, gdrive_del
 from apps.vdrive.models import VideoProcessing, Processing, Video, VideoScan
@@ -33,7 +33,6 @@ class GDriveListForm(forms.Form):
 class StartScanView(View):
     def start_scan(self):
         if self.request.user.video_scans.filter(status__in=['in_progress', 'waiting']).exists():
-            logger.debug(f'Active scan already exists for user {self.request.user}')
             logger.debug(f'Active scan already exists for user {self.request.user}')
         else:
             video_scan = VideoScan.objects.create(user=self.request.user)
@@ -124,15 +123,13 @@ class DeleteListView(LoginRequiredMixin, FormView):
 
     def form_valid(self, form):
         data = list(form.data)
-        print(data)
         videos = [field for field in data if field != 'csrfmiddlewaretoken']
-        print(videos)
-        video_pks = []
-        for video_id in videos:
-            video = Video.objects.get(id=video_id)
-            video_pk = video.source_id
+        video_ids = []
+        for id in videos:
+            video = Video.objects.get(id=id)
+            video_id = video.source_id
             if video.source_type == Video.Type.GDRIVE:
-                video_pks.append(video_pk)
-        on_commit(lambda: [gdrive_del.delay(video_pk) for video_pk in video_pks])
+                video_ids.append(video_id)
+        on_commit(lambda: [gdrive_del.delay(video_id) for video_id in video_ids])
 
         return super().form_valid(form)

@@ -1,6 +1,8 @@
+import json
 import logging
 import tempfile
 
+import requests
 from celery import shared_task
 
 from django.contrib.auth import get_user_model
@@ -25,7 +27,7 @@ def process(video_processing_pk):
     video_id = video.source_id
 
     with tempfile.NamedTemporaryFile(mode='w+b', delete=True) as file_descriptor:
-        print(f'Downloading {video_id} for {user}')
+        logging.info(f'Downloading {video_id} for {user}')
         if video_id is None:
             video_processing.status = VideoProcessing.Status.ERROR
             msg = 'No Id provided'
@@ -37,7 +39,6 @@ def process(video_processing_pk):
         video_processing.save()
 
         try:
-            print(user, video_id, file_descriptor)
             if video_processing.video.source_type == Video.Type.GPHOTOS:
                 download_from_gphotos(user, video_id, file_descriptor, video_processing)
             else:
@@ -77,16 +78,16 @@ def scan_files(video_scan_id):
         video_scan.status = VideoScan.Status.ERROR
         video_scan.error_message = f'Error in scan: {e}'
         video_scan.save()
-
     video_scan.status = VideoScan.Status.SUCCESS
     video_scan.save()
 
+
 @shared_task
-def gdrive_del(id_source):
-    video = Video.objects.get(source_id=id_source)
+def gdrive_del(video_id):
+    video = Video.objects.get(source_id=video_id)
     user = video.user
     drive = build('drive', 'v3', credentials=get_google_credentials(user))
-    drive.files().delete(fileId=id_source).execute()
+    drive.files().delete(fileId=video_id).execute()
     logger.info(f'Deleted file: { video.name }')
     video.status = Video.Status.DELETED
     video.save()

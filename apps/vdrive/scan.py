@@ -76,8 +76,6 @@ def get_gphotos(user):
     while results.get('nextPageToken', None):
         payload['pageToken'] = results.get('nextPageToken')
         response = requests.post(url, data=json.dumps(payload), headers=headers)
-        print(response)
-        print(response.json())
         if response.status_code != 200:
             raise ValueError('Failed to retrieve data from gphotos')
 
